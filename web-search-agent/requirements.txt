@@ -1,4 +1,4 @@
 anthropic
 tavily-python
 fastapi
-uvicorn
+uvicornslowapi

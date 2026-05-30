@@ -244,7 +244,7 @@
 
   <div class="agent-grid">
     <div class="agent-card active" onclick="selectAgent('search')" id="card-search">
-      <div class="agent-icon"><i class="ti ti-world-search"></i></div>
+      <div class="agent-icon"><i class="ti ti-search"></i></div>
       <div class="agent-name">Web search</div>
       <div class="agent-tech">Tool calling · Agent loop · Runaway protection</div>
       <div class="agent-desc">Searches the web in real time to answer any question</div>
@@ -319,7 +319,7 @@
       url: 'https://memory-agent-ngxi.onrender.com/chat',
       label: 'Memory agent',
       placeholder: 'Tell me your name, then ask a follow-up...',
-      welcome: 'I remember everything you tell me in this session. Try: "Hi, my name is [your name]" then ask something later and watch me remember.',
+      welcome: 'I am Agent Smith. I do not forget what you tell me. Try it.',
       payload: (msg, sid) => ({ session_id: sid, message: msg }),
       extract: (d) => d.response,
       session: true

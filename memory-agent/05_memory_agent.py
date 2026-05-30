@@ -2,7 +2,11 @@ import anthropic
 import os
 import chromadb
 from chromadb.utils import embedding_functions
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from pydantic import BaseModel
 from typing import List, Dict
 import uvicorn
@@ -10,11 +14,13 @@ import uvicorn
 anthropic_client = anthropic.Anthropic()
 chroma_client = chromadb.Client()
 embedding_fn = embedding_functions.DefaultEmbeddingFunction()
-collection = chroma_client.create_collection(
-    name="company_docs",
-    embedding_function=embedding_fn
-)
+collection = chroma_client.create_collection(name="company_docs", embedding_function=embedding_fn)
+
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 COMPANY_DOCS = """
 ACME Corp Employee FAQ
@@ -47,17 +53,11 @@ def index_documents():
         chunk = " ".join(words[start:end])
         chunks.append(chunk)
         start = end - 20
-    collection.add(
-        documents=chunks,
-        ids=[f"chunk_{i}" for i in range(len(chunks))]
-    )
+    collection.add(documents=chunks, ids=[f"chunk_{i}" for i in range(len(chunks))])
     print(f"Indexed {len(chunks)} chunks into ChromaDB")
 
 def retrieve_context(query, n_results=2):
-    results = collection.query(
-        query_texts=[query],
-        n_results=n_results
-    )
+    results = collection.query(query_texts=[query], n_results=n_results)
     return "\n\n".join(results["documents"][0])
 
 conversation_histories: Dict[str, List[dict]] = {}
@@ -65,11 +65,8 @@ conversation_histories: Dict[str, List[dict]] = {}
 def run_memory_agent(session_id: str, user_message: str) -> str:
     if session_id not in conversation_histories:
         conversation_histories[session_id] = []
-
     history = conversation_histories[session_id]
-
     context = retrieve_context(user_message)
-
     system_prompt = f"""You are a helpful HR assistant for ACME Corp.
 You have access to company policy documents. Use them to answer questions accurately.
 If the answer is not in the documents, say so honestly.
@@ -77,28 +74,16 @@ Remember the full conversation history and refer back to it when relevant.
 
 Relevant company policies:
 {context}"""
-
-    history.append({
-        "role": "user",
-        "content": user_message
-    })
-
+    history.append({"role": "user", "content": user_message})
     response = anthropic_client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=1024,
         system=system_prompt,
         messages=history
     )
-
     assistant_message = response.content[0].text
-
-    history.append({
-        "role": "assistant",
-        "content": assistant_message
-    })
-
+    history.append({"role": "assistant", "content": assistant_message})
     conversation_histories[session_id] = history
-
     return assistant_message
 
 print("Indexing documents...")
@@ -114,19 +99,20 @@ class ChatResponse(BaseModel):
     turn_count: int
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest):
-    response = run_memory_agent(request.session_id, request.message)
-    turn_count = len(conversation_histories.get(request.session_id, [])) // 2
+@limiter.limit("10/minute")
+async def chat(request: Request, body: ChatRequest):
+    response = run_memory_agent(body.session_id, body.message)
+    turn_count = len(conversation_histories.get(body.session_id, [])) // 2
     return ChatResponse(response=response, turn_count=turn_count)
 
 @app.delete("/chat/{session_id}")
-def clear_session(session_id: str):
+async def clear_session(session_id: str):
     if session_id in conversation_histories:
         del conversation_histories[session_id]
     return {"status": "session cleared"}
 
 @app.get("/")
-def root():
+async def root(request: Request):
     return {"status": "Memory agent is running"}
 
 if __name__ == "__main__":
