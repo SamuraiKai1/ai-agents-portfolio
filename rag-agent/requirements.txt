@@ -1,7 +1,4 @@
 anthropic
 chromadb
-sentence-transformers
 fastapi
 uvicorn
-pypdf
-torch
