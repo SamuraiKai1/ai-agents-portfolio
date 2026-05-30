@@ -1,0 +1,25 @@
+ACME Corp Employee FAQ
+
+Q: What is the vacation policy?
+A: Full-time employees receive 20 days of paid vacation per year. Vacation days reset on January 1st. Unused days cannot be carried over to the next year. Requests must be submitted at least 2 weeks in advance through the HR portal.
+
+Q: How do I submit an expense report?
+A: Expense reports must be submitted within 30 days of the expense. Use the Expensify app to upload receipts. Reports over $500 require manager approval. Reimbursements are processed within 2 weeks of approval.
+
+Q: What is the remote work policy?
+A: Employees may work remotely up to 3 days per week. Core hours are 10am-3pm in your local timezone. You must be available on Slack during core hours. Remote work must be approved by your direct manager.
+
+Q: What health insurance plans are available?
+A: ACME offers three health plans: Basic, Standard, and Premium. Basic covers 70% of medical costs. Standard covers 85% and includes dental. Premium covers 95% and includes dental and vision. Open enrollment is every November.
+
+Q: How does the performance review process work?
+A: Performance reviews happen twice a year, in June and December. Employees submit a self-assessment two weeks before the review. Managers provide written feedback and a rating from 1-5. Ratings of 4 or above qualify for a merit increase.
+
+Q: What is the parental leave policy?
+A: Primary caregivers receive 16 weeks of fully paid parental leave. Secondary caregivers receive 6 weeks. Leave must be taken within 12 months of the child's birth or adoption. Contact HR at least 30 days before your planned leave start date.
+
+Q: How do I set up my development environment?
+A: Clone the main repo from GitHub. Run the setup.sh script which installs all dependencies. Use Docker for local services. The engineering wiki has detailed guides for each team's stack. Reach out to your onboarding buddy for help.
+
+Q: What is the equipment budget for new employees?
+A: New employees receive a $2000 equipment budget. This covers a laptop, monitor, keyboard, and mouse. Submit equipment requests through the IT portal within your first week. Additional equipment requires manager approval.
