@@ -12,7 +12,7 @@ An agent that answers questions using real-time web search.
 ### 2. RAG Document Agent
 An agent that answers questions grounded in private documents.
 - Chunking, embeddings, ChromaDB vector search
-- Live demo: coming soon
+- Live demo: https://rag-agent-31ns.onrender.com
 
 ### 3. Memory Agent
 An agent that remembers context across conversation turns.
@@ -21,7 +21,7 @@ An agent that remembers context across conversation turns.
 
 ## Stack
 - LLM: Anthropic Claude Sonnet 4.6
-- Embeddings: sentence-transformers
+- Embeddings: ChromaDB default (all-MiniLM-L6-v2 via ONNX)
 - Vector DB: ChromaDB
 - API: FastAPI + uvicorn
 - Deployment: Render
