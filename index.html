@@ -18,10 +18,7 @@
     align-items: center;
     padding: 2rem 1rem;
   }
-  .container {
-    width: 100%;
-    max-width: 780px;
-  }
+  .container { width: 100%; max-width: 780px; }
   .header {
     border-bottom: 1px solid #1d9e7530;
     padding-bottom: 1.5rem;
@@ -34,33 +31,18 @@
     gap: 1rem;
     flex-wrap: wrap;
   }
-  .name {
-    font-size: 28px;
-    font-weight: 600;
-    color: #fff;
-    letter-spacing: -0.5px;
-  }
-  .title {
-    font-size: 12px;
-    color: #1D9E75;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    margin-top: 5px;
-  }
+  .name { font-size: 28px; font-weight: 600; color: #fff; letter-spacing: -0.5px; }
+  .role { font-size: 12px; color: #1D9E75; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 5px; }
   .tagline {
-    font-size: 13px;
-    color: #9FE1CB;
-    margin-top: 10px;
-    opacity: 0.8;
+    font-size: 15px;
+    color: #e8f5f0;
+    margin-top: 12px;
     line-height: 1.6;
-    max-width: 520px;
+    max-width: 560px;
+    font-weight: 500;
   }
-  .header-links {
-    display: flex;
-    gap: 10px;
-    flex-shrink: 0;
-    margin-top: 4px;
-  }
+  .tagline span { color: #1D9E75; }
+  .header-links { display: flex; gap: 10px; flex-shrink: 0; margin-top: 4px; }
   .header-link {
     display: flex;
     align-items: center;
@@ -103,19 +85,9 @@
     margin-bottom: 10px;
   }
   .agent-icon i { font-size: 17px; color: #1D9E75; }
-  .agent-name { font-size: 13px; font-weight: 600; color: #e8f5f0; margin-bottom: 4px; }
+  .agent-name { font-size: 13px; font-weight: 600; color: #e8f5f0; margin-bottom: 5px; }
+  .agent-tech { font-size: 11px; color: #1D9E75; margin-bottom: 5px; font-family: monospace; letter-spacing: 0.2px; }
   .agent-desc { font-size: 11px; color: #5DCAA5; opacity: 0.85; line-height: 1.5; }
-  .agent-badge {
-    display: inline-block;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    background: #1d9e7512;
-    color: #1D9E75;
-    border: 1px solid #1d9e7530;
-    margin-top: 8px;
-    letter-spacing: 0.3px;
-  }
   .chat-area {
     background: #0c1f18;
     border: 1px solid #1d9e7525;
@@ -172,10 +144,7 @@
     background: none;
     padding: 2px 0;
   }
-  .input-row {
-    display: flex;
-    gap: 8px;
-  }
+  .input-row { display: flex; gap: 8px; }
   .chat-input {
     flex: 1;
     background: #071510;
@@ -209,6 +178,16 @@
   .send-btn:hover { background: #5DCAA5; }
   .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .send-btn i { font-size: 14px; }
+  .spin-notice {
+    font-size: 11px;
+    color: #5DCAA5;
+    opacity: 0.55;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .spin-notice i { font-size: 12px; }
   .stack-row {
     display: flex;
     flex-wrap: wrap;
@@ -233,18 +212,8 @@
     flex-wrap: wrap;
     gap: 8px;
   }
-  .footer-left { font-size: 11px; color: #1d9e7540; font-family: monospace; }
+  .footer-left { font-size: 11px; color: #1d9e7440; font-family: monospace; }
   .footer-right { font-size: 11px; color: #5DCAA5; opacity: 0.6; }
-  .spin-notice {
-    font-size: 11px;
-    color: #5DCAA5;
-    opacity: 0.55;
-    margin-top: 8px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .spin-notice i { font-size: 12px; }
   @media (max-width: 520px) {
     .agent-grid { grid-template-columns: 1fr; }
     .header-top { flex-direction: column; }
@@ -259,8 +228,8 @@
     <div class="header-top">
       <div>
         <div class="name">Mustafa Sadree</div>
-        <div class="title">Agentic AI Engineer</div>
-        <div class="tagline">Three production AI agents built from scratch in 48 hours using Claude + FastAPI. Select one and try it live.</div>
+        <div class="role">Agentic AI Engineer</div>
+        <div class="tagline">Built three production AI agents from scratch <span>in a weekend.</span><br>All deployed. All explainable. Try them.</div>
       </div>
       <div class="header-links">
         <a class="header-link" href="https://github.com/SamuraiKai1/ai-agents-portfolio" target="_blank">
@@ -277,27 +246,27 @@
     <div class="agent-card active" onclick="selectAgent('search')" id="card-search">
       <div class="agent-icon"><i class="ti ti-world-search"></i></div>
       <div class="agent-name">Web search</div>
-      <div class="agent-desc">Real-time web search via tool calling and agent loop</div>
-      <div class="agent-badge">Tool calling</div>
+      <div class="agent-tech">Tool calling · Agent loop · Runaway protection</div>
+      <div class="agent-desc">Searches the web in real time to answer any question</div>
     </div>
     <div class="agent-card" onclick="selectAgent('rag')" id="card-rag">
       <div class="agent-icon"><i class="ti ti-file-search"></i></div>
       <div class="agent-name">Document Q&A</div>
-      <div class="agent-desc">Answers grounded in private docs via vector retrieval</div>
-      <div class="agent-badge">RAG</div>
+      <div class="agent-tech">Chunking · Embeddings · Vector retrieval</div>
+      <div class="agent-desc">Answers grounded strictly in private document context</div>
     </div>
     <div class="agent-card" onclick="selectAgent('memory')" id="card-memory">
       <div class="agent-icon"><i class="ti ti-brain"></i></div>
       <div class="agent-name">Memory agent</div>
-      <div class="agent-desc">Remembers context across turns, combined with RAG</div>
-      <div class="agent-badge">Memory + RAG</div>
+      <div class="agent-tech">Session memory · RAG · Stateless API management</div>
+      <div class="agent-desc">Remembers context across turns, combined with retrieval</div>
     </div>
   </div>
 
   <div class="chat-area">
     <div class="chat-label" id="chat-label">Web search agent</div>
     <div class="messages" id="messages">
-      <div class="msg agent">Ask me anything — I can search the web in real time.</div>
+      <div class="msg agent">Ask me anything. I can search the web in real time.</div>
     </div>
     <div class="input-row">
       <input class="chat-input" id="input" placeholder="Ask about current events..." onkeydown="if(event.key==='Enter' && !event.shiftKey) send()">
@@ -307,7 +276,7 @@
     </div>
     <div class="spin-notice">
       <i class="ti ti-info-circle"></i>
-      Free tier — agents may take 30s to wake up on first request.
+      Free tier. Agents may take 30s to wake up on first request.
     </div>
   </div>
 
@@ -316,43 +285,41 @@
     <span class="stack-pill">FastAPI</span>
     <span class="stack-pill">ChromaDB</span>
     <span class="stack-pill">Tavily Search</span>
-    <span class="stack-pill">sentence-transformers</span>
     <span class="stack-pill">Python 3.12</span>
     <span class="stack-pill">Render</span>
   </div>
 
   <div class="footer">
     <div class="footer-left" id="session-label">session: search-demo</div>
-    <div class="footer-right">Built in 48hrs &mdash; May 2026</div>
+    <div class="footer-right">Built in a weekend. May 2026.</div>
   </div>
 
 </div>
-
 <script>
   const AGENTS = {
     search: {
       url: 'https://web-search-agent-woa6.onrender.com/ask',
       label: 'Web search agent',
       placeholder: 'Ask about current events...',
-      welcome: 'Ask me anything — I can search the web in real time.',
+      welcome: 'Ask me anything. I can search the web in real time.',
       payload: (msg) => ({ question: msg }),
       extract: (d) => d.answer,
       session: false
     },
     rag: {
       url: 'https://rag-agent-31ns.onrender.com/ask',
-      label: 'Document Q&A agent — ACME Corp HR',
+      label: 'Document Q&A agent',
       placeholder: 'Ask about vacation, remote work, health insurance...',
-      welcome: 'I know ACME Corp HR policies inside out. Ask me about vacation days, expense reports, remote work, parental leave, and more.',
+      welcome: 'I know ACME Corp HR policies. Ask me about vacation days, expense reports, remote work, parental leave, or health insurance.',
       payload: (msg) => ({ question: msg }),
       extract: (d) => d.answer,
       session: false
     },
     memory: {
       url: 'https://memory-agent-ngxi.onrender.com/chat',
-      label: 'Memory agent — remembers you',
+      label: 'Memory agent',
       placeholder: 'Tell me your name, then ask a follow-up...',
-      welcome: 'I remember everything you tell me in this session. Try: "Hi, my name is [your name]" — then ask something later and watch me remember.',
+      welcome: 'I remember everything you tell me in this session. Try: "Hi, my name is [your name]" then ask something later and watch me remember.',
       payload: (msg, sid) => ({ session_id: sid, message: msg }),
       extract: (d) => d.response,
       session: true
@@ -385,14 +352,12 @@
     const btn = document.getElementById('send-btn');
     const msg = input.value.trim();
     if (!msg || btn.disabled) return;
-
     const msgs = document.getElementById('messages');
     msgs.innerHTML += '<div class="msg user">' + escHtml(msg) + '</div>';
     msgs.innerHTML += '<div class="msg thinking" id="thinking">thinking...</div>';
     input.value = '';
     btn.disabled = true;
     msgs.scrollTop = msgs.scrollHeight;
-
     const a = AGENTS[current];
     try {
       const res = await fetch(a.url, {
@@ -406,16 +371,19 @@
       msgs.innerHTML += '<div class="msg agent">' + escHtml(a.extract(data)) + '</div>';
     } catch (e) {
       document.getElementById('thinking').remove();
-      msgs.innerHTML += '<div class="msg agent" style="opacity:0.6;font-style:italic">Agent is waking up on free tier — please try again in 30 seconds.</div>';
+      msgs.innerHTML += '<div class="msg agent" style="opacity:0.6;font-style:italic">Agent is waking up on free tier. Try again in 30 seconds.</div>';
     }
-
     btn.disabled = false;
     msgs.scrollTop = msgs.scrollHeight;
     input.focus();
   }
 
   function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
   }
 </script>
 </body>
