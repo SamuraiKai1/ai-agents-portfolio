@@ -1,15 +1,18 @@
 import anthropic
 import os
 import chromadb
-from sentence_transformers import SentenceTransformer
+from chromadb.utils import embedding_functions
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
 
 anthropic_client = anthropic.Anthropic()
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 chroma_client = chromadb.Client()
-collection = chroma_client.create_collection(name="company_docs")
+embedding_fn = embedding_functions.DefaultEmbeddingFunction()
+collection = chroma_client.create_collection(
+    name="company_docs",
+    embedding_function=embedding_fn
+)
 app = FastAPI()
 
 def chunk_text(text, chunk_size=80, overlap=20):
@@ -26,23 +29,17 @@ def chunk_text(text, chunk_size=80, overlap=20):
 def load_and_index_document(filepath):
     with open(filepath, "r") as f:
         text = f.read()
-
     chunks = chunk_text(text)
     print(f"Created {len(chunks)} chunks from {filepath}")
-
-    embeddings = embedding_model.encode(chunks).tolist()
-
     collection.add(
         documents=chunks,
-        embeddings=embeddings,
         ids=[f"chunk_{i}" for i in range(len(chunks))]
     )
     print(f"Indexed {len(chunks)} chunks into ChromaDB")
 
 def retrieve_relevant_chunks(query, n_results=3):
-    query_embedding = embedding_model.encode([query]).tolist()
     results = collection.query(
-        query_embeddings=query_embedding,
+        query_texts=[query],
         n_results=n_results
     )
     return results["documents"][0]
@@ -50,7 +47,6 @@ def retrieve_relevant_chunks(query, n_results=3):
 def run_rag_agent(user_question):
     relevant_chunks = retrieve_relevant_chunks(user_question)
     context = "\n\n".join(relevant_chunks)
-
     messages = [
         {
             "role": "user",
@@ -63,13 +59,11 @@ Context:
 Question: {user_question}"""
         }
     ]
-
     response = anthropic_client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=1024,
         messages=messages
     )
-
     return {
         "answer": response.content[0].text,
         "source_chunks": relevant_chunks
