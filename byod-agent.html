@@ -210,10 +210,7 @@
       <div class="messages" id="messages">
         <div class="msg agent">Upload a document on the right and I will answer any questions grounded strictly in its content. I will not use outside knowledge.</div>
       </div>
-      <div id="sources-section" class="sources-section">
-        <div class="panel-label" style="margin-bottom:8px"><i class="ti ti-file-text"></i> Retrieved source chunks</div>
-        <div id="sources-list"></div>
-      </div>
+
       <div class="input-row">
         <input class="chat-input" id="input" placeholder="Upload a document first..." disabled onkeydown="if(event.key==='Enter' && !event.shiftKey) sendMsg()">
         <button class="send-btn" id="send-btn" onclick="sendMsg()" disabled>
@@ -244,6 +241,10 @@
           <div class="sample-q hidden" onclick="setInput(this.textContent)"></div>
         </div>
         <div style="font-size:11px;color:#5DCAA5;opacity:0.5;font-style:italic;" id="no-doc-hint">Upload a document to see suggested questions.</div>
+      <div id="sources-section" style="display:none; margin-top:10px;">
+          <div class="panel-label" style="margin-bottom:6px;"><i class="ti ti-file-text"></i> Retrieved chunks</div>
+          <div id="sources-list"></div>
+        </div>
       </div>
 
       <div class="panel">
