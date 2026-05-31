@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mustafa Sadree — Customer Support Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a1a14;
+    color: #e8f5f0;
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+  }
+  .container { width: 100%; max-width: 1100px; margin: 0 auto; }
+
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #1d9e7525;
+  }
+  .back-link {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: #5DCAA5; text-decoration: none;
+    padding: 6px 12px; border: 1px solid #1d9e7530; border-radius: 6px;
+    transition: border-color 0.2s;
+  }
+  .back-link:hover { border-color: #1D9E75; }
+  .header-left .name { font-size: 22px; font-weight: 600; color: #fff; }
+  .header-left .role { font-size: 11px; color: #1D9E75; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .header-left .desc { font-size: 13px; color: #9FE1CB; margin-top: 6px; opacity: 0.85; }
+  .header-right { display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; }
+  .header-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: #5DCAA5; text-decoration: none;
+    padding: 6px 12px; border: 1px solid #1d9e7530; border-radius: 6px;
+    transition: border-color 0.2s; cursor: pointer; background: none;
+    font-family: inherit;
+  }
+  .header-btn:hover { border-color: #1D9E75; color: #1D9E75; }
+
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .stat-card {
+    background: #0e2218;
+    border: 1px solid #1d9e7520;
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    text-align: center;
+  }
+  .stat-card .stat-val { font-size: 22px; font-weight: 600; color: #1D9E75; }
+  .stat-card .stat-label { font-size: 10px; color: #5DCAA5; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+  .stat-card.highlight .stat-val { color: #EF9F27; }
+  .stat-card.danger .stat-val { color: #F09595; }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .panel {
+    background: #0e2218;
+    border: 1px solid #1d9e7520;
+    border-radius: 10px;
+    padding: 1.125rem;
+  }
+  .panel-label {
+    font-size: 10px; color: #5DCAA5; letter-spacing: 1.5px;
+    text-transform: uppercase; opacity: 0.7; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .panel-label i { font-size: 13px; }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #1D9E75; display: inline-block; margin-right: 4px;
+  }
+  .status-dot.offline { background: #E24B4A; }
+
+  .messages {
+    min-height: 300px;
+    max-height: 380px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #1d9e7530 transparent;
+  }
+  .msg {
+    font-size: 13px; line-height: 1.65;
+    padding: 10px 13px; border-radius: 8px;
+    max-width: 88%; white-space: pre-wrap; word-break: break-word;
+  }
+  .msg.user { background: #1d9e7518; color: #9FE1CB; border: 1px solid #1d9e7525; align-self: flex-end; }
+  .msg.agent { background: #071510; color: #e8f5f0; border: 1px solid #1d9e7515; align-self: flex-start; }
+  .msg.thinking { color: #5DCAA5; opacity: 0.5; font-style: italic; font-size: 12px; border: none; background: none; padding: 2px 0; }
+  .msg.system { color: #1D9E75; font-size: 11px; border: none; background: none; padding: 2px 0; opacity: 0.8; font-style: italic; align-self: center; }
+
+  .input-row { display: flex; gap: 8px; }
+  .chat-input {
+    flex: 1; background: #071510; border: 1px solid #1d9e7530;
+    border-radius: 8px; padding: 9px 13px; font-size: 13px;
+    color: #e8f5f0; outline: none; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .chat-input::placeholder { color: #5DCAA5; opacity: 0.4; }
+  .chat-input:focus { border-color: #1D9E75; }
+  .send-btn {
+    background: #1D9E75; border: none; border-radius: 8px;
+    padding: 9px 16px; cursor: pointer; color: #04342C;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    display: flex; align-items: center; gap: 5px;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .send-btn:hover { background: #5DCAA5; }
+  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+  .upload-zone {
+    border: 1px dashed #1d9e7540;
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 10px;
+  }
+  .upload-zone:hover { border-color: #1D9E75; background: #1d9e7508; }
+  .upload-zone i { font-size: 24px; color: #1D9E75; opacity: 0.7; margin-bottom: 6px; display: block; }
+  .upload-zone .upload-title { font-size: 13px; color: #e8f5f0; margin-bottom: 3px; }
+  .upload-zone .upload-sub { font-size: 11px; color: #5DCAA5; opacity: 0.7; }
+  #csv-input { display: none; }
+
+  .csv-format {
+    background: #071510;
+    border: 1px solid #1d9e7518;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #5DCAA5;
+    font-family: monospace;
+    margin-bottom: 10px;
+    line-height: 1.7;
+  }
+  .reset-btn {
+    width: 100%; padding: 8px; border: 1px solid #1d9e7530;
+    border-radius: 7px; background: none; color: #5DCAA5;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .reset-btn:hover { border-color: #E24B4A; color: #F09595; }
+
+  .upload-result {
+    font-size: 12px; color: #1D9E75; margin-top: 8px;
+    padding: 8px 10px; border-radius: 6px;
+    background: #1d9e7510; border: 1px solid #1d9e7520;
+    display: none;
+  }
+
+  .log-table { width: 100%; border-collapse: collapse; }
+  .log-table th {
+    font-size: 10px; color: #5DCAA5; opacity: 0.7;
+    text-transform: uppercase; letter-spacing: 1px;
+    text-align: left; padding: 0 8px 8px 0;
+    border-bottom: 1px solid #1d9e7520;
+  }
+  .log-table td {
+    font-size: 11px; color: #9FE1CB; padding: 7px 8px 7px 0;
+    border-bottom: 1px solid #1d9e7510; vertical-align: top;
+    font-family: monospace;
+  }
+  .log-table td:first-child { color: #5DCAA5; opacity: 0.7; white-space: nowrap; }
+  .log-empty { font-size: 12px; color: #5DCAA5; opacity: 0.5; font-style: italic; padding: 12px 0; }
+  .tool-badge {
+    display: inline-block; font-size: 10px; padding: 2px 7px;
+    border-radius: 20px; background: #1d9e7512;
+    color: #1D9E75; border: 1px solid #1d9e7525;
+  }
+
+  .footer {
+    padding-top: 1rem;
+    border-top: 1px solid #1d9e7515;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 8px;
+  }
+  .footer-left { font-size: 11px; color: #1d9e7440; font-family: monospace; }
+  .footer-right { font-size: 11px; color: #5DCAA5; opacity: 0.6; }
+
+  .spin-notice { font-size: 11px; color: #5DCAA5; opacity: 0.5; margin-top: 7px; display: flex; align-items: center; gap: 4px; }
+  .spin-notice i { font-size: 12px; }
+
+  @media (max-width: 700px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-left">
+      <a class="back-link" href="https://mustafa-ai-agents.netlify.app">
+        <i class="ti ti-arrow-left"></i> Portfolio
+      </a>
+      <div class="name" style="margin-top: 10px;">Customer Support Agent</div>
+      <div class="role">Live Supabase Integration</div>
+      <div class="desc">AI agent that reads and writes to a real database. Upload your own data and watch it work.</div>
+    </div>
+    <div class="header-right">
+      <a class="header-btn" href="https://github.com/SamuraiKai1/ai-agents-portfolio/tree/main/support-agent" target="_blank">
+        <i class="ti ti-brand-github"></i> GitHub
+      </a>
+      <a class="header-btn" href="https://linkedin.com/in/mustafa-sadree" target="_blank">
+        <i class="ti ti-brand-linkedin"></i> LinkedIn
+      </a>
+      <button class="header-btn" onclick="refreshStats()">
+        <i class="ti ti-refresh"></i> Refresh stats
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-card"><div class="stat-val" id="stat-customers">...</div><div class="stat-label">Customers</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-open">...</div><div class="stat-label">Open tickets</div></div>
+    <div class="stat-card highlight"><div class="stat-val" id="stat-escalated">...</div><div class="stat-label">Escalated</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-progress">...</div><div class="stat-label">In progress</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-resolved">...</div><div class="stat-label">Resolved</div></div>
+  </div>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-label">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="agent-status">Support agent</span>
+      </div>
+      <div class="messages" id="messages">
+        <div class="msg agent">Hello! I am the ACME Corp support agent. I have access to your account database. Please share your email address and tell me how I can help you today.</div>
+      </div>
+      <div class="input-row">
+        <input class="chat-input" id="input" placeholder="Type your message..." onkeydown="if(event.key==='Enter' && !event.shiftKey) sendMsg()">
+        <button class="send-btn" id="send-btn" onclick="sendMsg()">
+          Send <i class="ti ti-arrow-right"></i>
+        </button>
+      </div>
+      <div class="spin-notice">
+        <i class="ti ti-info-circle"></i>
+        Free tier. First request may take 30s to wake up.
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="panel">
+        <div class="panel-label"><i class="ti ti-upload"></i> Inject your data</div>
+        <div class="upload-zone" onclick="document.getElementById('csv-input').click()">
+          <i class="ti ti-file-text"></i>
+          <div class="upload-title">Upload a CSV file</div>
+          <div class="upload-sub">name, email, issue, priority</div>
+        </div>
+        <input type="file" id="csv-input" accept=".csv" onchange="uploadCSV(this)">
+        <div class="csv-format">
+          name,email,issue,priority<br>
+          Jane Smith,jane@co.com,Login broken,high<br>
+          Bob Jones,bob@co.com,Billing issue,normal
+        </div>
+        <div class="upload-result" id="upload-result"></div>
+        <button class="reset-btn" onclick="resetDemo()">
+          <i class="ti ti-trash"></i> Reset all demo data
+        </button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-label"><i class="ti ti-list-check"></i> Try these customers</div>
+        <div style="display: flex; flex-direction: column; gap: 7px;">
+          <button class="header-btn" style="justify-content: flex-start; width: 100%;" onclick="setInput('Hi, my email is tom@example.com and I have a refund issue')">
+            <i class="ti ti-user"></i> tom@example.com — refund issue
+          </button>
+          <button class="header-btn" style="justify-content: flex-start; width: 100%;" onclick="setInput('Hello, my email is sarah@example.com, my add-on is not working')">
+            <i class="ti ti-user"></i> sarah@example.com — add-on issue
+          </button>
+          <button class="header-btn" style="justify-content: flex-start; width: 100%;" onclick="setInput('Hi, my email is priya@example.com, I need an invoice')">
+            <i class="ti ti-user"></i> priya@example.com — enterprise
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom: 1.25rem;">
+    <div class="panel-label" style="justify-content: space-between;">
+      <span><i class="ti ti-terminal"></i> Agent audit log</span>
+      <button class="header-btn" style="padding: 3px 10px; font-size: 10px;" onclick="refreshLogs()"><i class="ti ti-refresh"></i> Refresh</button>
+    </div>
+    <div id="log-container">
+      <div class="log-empty">No tool calls yet. Start a conversation to see the agent work.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left" id="session-label">session: initializing...</div>
+    <div class="footer-right">Tool calling · Supabase · Memory · Audit logging</div>
+  </div>
+
+</div>
+
+<script>
+  const API = 'https://support-agent-mprw.onrender.com';
+  let sessionId = 'demo-' + Math.random().toString(36).slice(2, 8);
+  document.getElementById('session-label').textContent = 'session: ' + sessionId;
+
+  async function refreshStats() {
+    try {
+      const res = await fetch(API + '/stats');
+      const d = await res.json();
+      document.getElementById('stat-customers').textContent = d.total_customers ?? '0';
+      document.getElementById('stat-open').textContent = d.open_tickets ?? '0';
+      document.getElementById('stat-escalated').textContent = d.escalated_tickets ?? '0';
+      document.getElementById('stat-progress').textContent = d.in_progress_tickets ?? '0';
+      document.getElementById('stat-resolved').textContent = d.resolved_tickets ?? '0';
+    } catch(e) {
+      document.getElementById('stat-customers').textContent = '--';
+    }
+  }
+
+  async function checkStatus() {
+    try {
+      const res = await fetch(API + '/status');
+      const d = await res.json();
+      const dot = document.getElementById('status-dot');
+      const label = document.getElementById('agent-status');
+      if (d.status === 'online') {
+        dot.classList.remove('offline');
+        label.textContent = 'Support agent online';
+      } else {
+        dot.classList.add('offline');
+        label.textContent = 'Agent offline';
+      }
+    } catch(e) {
+      document.getElementById('status-dot').classList.add('offline');
+      document.getElementById('agent-status').textContent = 'Agent waking up...';
+    }
+  }
+
+  async function refreshLogs() {
+    try {
+      const res = await fetch(API + '/logs');
+      const d = await res.json();
+      const container = document.getElementById('log-container');
+      if (!d.logs || d.logs.length === 0) {
+        container.innerHTML = '<div class="log-empty">No tool calls yet. Start a conversation to see the agent work.</div>';
+        return;
+      }
+      let html = '<table class="log-table"><thead><tr><th>Time</th><th>Tool</th><th>Result</th></tr></thead><tbody>';
+      d.logs.slice(0, 8).forEach(log => {
+        const time = new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+        const result = (log.result || '').substring(0, 60) + ((log.result || '').length > 60 ? '...' : '');
+        html += `<tr>
+          <td>${time}</td>
+          <td><span class="tool-badge">${log.tool_name}</span></td>
+          <td style="color: #9FE1CB; font-family: monospace;">${escHtml(result)}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    } catch(e) {}
+  }
+
+  async function sendMsg() {
+    const input = document.getElementById('input');
+    const btn = document.getElementById('send-btn');
+    const msg = input.value.trim();
+    if (!msg || btn.disabled) return;
+
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML += '<div class="msg user">' + escHtml(msg) + '</div>';
+    msgs.innerHTML += '<div class="msg thinking" id="thinking">thinking...</div>';
+    input.value = '';
+    btn.disabled = true;
+    msgs.scrollTop = msgs.scrollHeight;
+
+    try {
+      const res = await fetch(API + '/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({session_id: sessionId, message: msg})
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      document.getElementById('thinking').remove();
+      msgs.innerHTML += '<div class="msg agent">' + escHtml(data.response) + '</div>';
+      refreshStats();
+      setTimeout(refreshLogs, 1000);
+    } catch(e) {
+      document.getElementById('thinking').remove();
+      msgs.innerHTML += '<div class="msg agent" style="opacity:0.6;font-style:italic">Agent is waking up on free tier. Try again in 30 seconds.</div>';
+    }
+
+    btn.disabled = false;
+    msgs.scrollTop = msgs.scrollHeight;
+    input.focus();
+  }
+
+  async function uploadCSV(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const result = document.getElementById('upload-result');
+    result.style.display = 'block';
+    result.textContent = 'Uploading...';
+    result.style.color = '#1D9E75';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(API + '/upload', {method: 'POST', body: formData});
+      const d = await res.json();
+      if (d.status === 'success') {
+        result.textContent = d.message;
+        const msgs = document.getElementById('messages');
+        msgs.innerHTML += '<div class="msg system">CSV loaded: ' + d.tickets_created + ' tickets from ' + d.customers_created + ' new customers. Try asking about any of the uploaded emails.</div>';
+        refreshStats();
+      } else {
+        result.textContent = 'Error: ' + d.message;
+        result.style.color = '#F09595';
+      }
+    } catch(e) {
+      result.textContent = 'Upload failed. Agent may be waking up.';
+      result.style.color = '#F09595';
+    }
+    input.value = '';
+  }
+
+  async function resetDemo() {
+    if (!confirm('This will delete all customers, orders, tickets and logs. Are you sure?')) return;
+    try {
+      const res = await fetch(API + '/reset', {method: 'DELETE'});
+      const d = await res.json();
+      const msgs = document.getElementById('messages');
+      msgs.innerHTML = '<div class="msg agent">All demo data has been cleared. Upload a CSV or use the sample customers to get started.</div>';
+      sessionId = 'demo-' + Math.random().toString(36).slice(2, 8);
+      document.getElementById('session-label').textContent = 'session: ' + sessionId;
+      refreshStats();
+      refreshLogs();
+    } catch(e) {
+      alert('Reset failed. Try again.');
+    }
+  }
+
+  function setInput(text) {
+    document.getElementById('input').value = text;
+    document.getElementById('input').focus();
+  }
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  checkStatus();
+  refreshStats();
+  setTimeout(refreshLogs, 2000);
+  setInterval(refreshStats, 30000);
+</script>
+</body>
+</html>
