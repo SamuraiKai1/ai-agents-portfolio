@@ -51,6 +51,7 @@
   .panel {
     background: #0e2218; border: 1px solid #1d9e7520;
     border-radius: 10px; padding: 1.125rem;
+    display: flex; flex-direction: column;
   }
   .panel-label {
     font-size: 10px; color: #5DCAA5; letter-spacing: 1.5px;
@@ -65,6 +66,7 @@
     min-height: 380px; max-height: 380px; overflow-y: auto;
     margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px;
     scrollbar-width: thin; scrollbar-color: #1d9e7530 transparent;
+    flex: 1;
   }
   .msg { font-size: 13px; line-height: 1.65; padding: 10px 13px; border-radius: 8px; max-width: 88%; white-space: pre-wrap; word-break: break-word; }
   .msg.user { background: #1d9e7518; color: #9FE1CB; border: 1px solid #1d9e7525; align-self: flex-end; }
