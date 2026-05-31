@@ -63,7 +63,7 @@
   .status-dot.offline { background: #E24B4A; }
 
   .messages {
-    min-height: 380px; max-height: 380px; overflow-y: auto;
+    height: 380px; overflow-y: auto;
     margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px;
     scrollbar-width: thin; scrollbar-color: #1d9e7530 transparent;
     flex: 1;
@@ -472,7 +472,13 @@
   }
 
   function escHtml(str) {
-    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    return (str || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g,'<em>$1</em>')
+      .replace(/\n/g,'<br>');
   }
 
   checkStatus();
