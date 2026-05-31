@@ -7,7 +7,7 @@ Three production AI agents built from scratch using Claude + FastAPI.
 ### 1. Web Search Agent
 An agent that answers questions using real-time web search.
 - Tool calling, agent loop, runaway protection
-- Live demo: https://web-search-agent-woa6.onrender.com
+- Live demo: https://web-search-agent-s1ez.onrender.com
 
 ### 2. RAG Document Agent
 An agent that answers questions grounded in private documents.
