@@ -1,0 +1,6 @@
+anthropic
+supabase
+fastapi
+uvicorn
+slowapi
+python-multipart

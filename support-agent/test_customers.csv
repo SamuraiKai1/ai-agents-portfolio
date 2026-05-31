@@ -1,0 +1,5 @@
+name,email,issue,priority
+John Smith,john@testcompany.com,Cannot login after password reset,high
+Emma Davis,emma@testcompany.com,Billing charge appears twice this month,high
+Carlos Rivera,carlos@testcompany.com,Need to upgrade plan to enterprise,normal
+Aisha Kamara,aisha@testcompany.com,Feature request: bulk export,low
