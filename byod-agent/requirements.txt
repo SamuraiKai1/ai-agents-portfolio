@@ -1,0 +1,7 @@
+anthropic
+chromadb
+fastapi
+uvicorn
+slowapi
+python-multipart
+pypdf

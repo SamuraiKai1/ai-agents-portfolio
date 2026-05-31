@@ -1,0 +1,21 @@
+Anthropic Company Overview
+
+Anthropic was founded in 2021 by Dario Amodei and Daniela Amodei, along with several 
+other former OpenAI researchers. The company is headquartered in San Francisco, California.
+
+Anthropic's primary product is Claude, an AI assistant built on large language model 
+technology. Claude is designed with a focus on safety, helpfulness, and honesty. The 
+company uses a technique called Constitutional AI to train Claude to be helpful while 
+avoiding harmful outputs.
+
+Anthropic has raised significant funding, including a $300 million Series B round in 2023 
+and a $4 billion investment from Amazon. The company's valuation reached approximately 
+$15 billion by late 2023.
+
+The company employs approximately 500 people as of 2024 and focuses heavily on AI safety 
+research alongside its commercial products. Anthropic publishes research on topics 
+including interpretability, alignment, and the societal impacts of AI systems.
+
+Claude is available through Anthropic's API and through claude.ai, a consumer-facing 
+web interface. Enterprise customers can access Claude through AWS Bedrock and Google 
+Cloud Vertex AI.
