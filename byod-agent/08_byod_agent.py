@@ -20,7 +20,6 @@ except ImportError:
     PDF_SUPPORT = False
 
 anthropic_client = anthropic.Anthropic()
-
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
 app.state.limiter = limiter
@@ -31,6 +30,8 @@ chroma_client = chromadb.Client()
 embedding_fn = embedding_functions.DefaultEmbeddingFunction()
 
 document_collections = {}
+document_store = {}
+eval_question_store = {}
 
 def chunk_text(text: str, chunk_size: int = 150, overlap: int = 30) -> list:
     words = text.split()
@@ -46,13 +47,11 @@ def chunk_text(text: str, chunk_size: int = 150, overlap: int = 30) -> list:
 
 def extract_text(file_content: bytes, filename: str) -> str:
     filename_lower = filename.lower()
-
     if filename_lower.endswith(".pdf"):
         if not PDF_SUPPORT:
             return "PDF support not available."
         reader = pypdf.PdfReader(io.BytesIO(file_content))
         return "\n".join([page.extract_text() or "" for page in reader.pages])
-
     if filename_lower.endswith(".csv"):
         text = file_content.decode("utf-8", errors="ignore")
         lines = text.strip().split("\n")
@@ -64,37 +63,30 @@ def extract_text(file_content: bytes, filename: str) -> str:
             values = line.split(",")
             row_text = " | ".join([
                 f"{h.strip()}: {v.strip()}"
-                for h, v in zip(headers, values)
-                if v.strip()
+                for h, v in zip(headers, values) if v.strip()
             ])
             if row_text:
                 readable.append(row_text)
         return "\n".join(readable)
-
     return file_content.decode("utf-8", errors="ignore")
 
 def index_document(session_id: str, text: str) -> int:
     collection_name = f"doc_{session_id}"
-
     try:
         chroma_client.delete_collection(collection_name)
     except:
         pass
-
     collection = chroma_client.create_collection(
         name=collection_name,
         embedding_function=embedding_fn
     )
-
     chunks = chunk_text(text)
     if not chunks:
         return 0
-
     collection.add(
         documents=chunks,
         ids=[f"chunk_{i}" for i in range(len(chunks))]
     )
-
     document_collections[session_id] = collection
     return len(chunks)
 
@@ -104,6 +96,54 @@ def retrieve_chunks(session_id: str, query: str, n_results: int = 4) -> list:
         return []
     results = collection.query(query_texts=[query], n_results=n_results)
     return results["documents"][0]
+
+def generate_eval_questions(text_sample: str, all_chunks: list) -> list:
+    prompt = f"""You are creating an evaluation set for a RAG agent.
+
+Read this document excerpt and generate exactly 5 factual questions that can be answered from it.
+For each question, provide 2-3 keywords that MUST appear in a correct answer.
+
+Rules for keywords:
+- Keywords must be exact words or short phrases that appear verbatim in the document
+- Do not invent keywords — only use words actually present in the text
+- Keywords should be specific facts, numbers, names, or terms
+
+Return ONLY a JSON array, no other text:
+[
+  {{"question": "...", "expected_keywords": ["keyword1", "keyword2"]}},
+  ...
+]
+
+Document excerpt:
+{text_sample[:2000]}"""
+
+    response = anthropic_client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    raw = response.content[0].text.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    questions = json.loads(raw.strip())
+
+    verified = []
+    all_text = " ".join(all_chunks).lower()
+    for item in questions:
+        verified_keywords = [
+            kw for kw in item.get("expected_keywords", [])
+            if kw.lower() in all_text
+        ]
+        if verified_keywords:
+            verified.append({
+                "question": item["question"],
+                "expected_keywords": verified_keywords
+            })
+
+    return verified[:5]
 
 def answer_question(session_id: str, question: str) -> dict:
     chunks = retrieve_chunks(session_id, question)
@@ -122,14 +162,20 @@ def answer_question(session_id: str, question: str) -> dict:
         messages=[
             {
                 "role": "user",
-                "content": f"""Answer the question using ONLY the context below.
-If the answer is not in the context, say exactly: "I don't have that information in the uploaded document."
-Do not use any outside knowledge.
+                "content": f"""You are a document assistant. Answer the question using ONLY the text in the context below.
+
+Rules:
+- Use only information explicitly stated in the context
+- Do not infer, elaborate, or add outside knowledge
+- Keep your answer concise and direct
+- If the answer is not in the context, say: "I don't have that information in the uploaded document."
 
 Context:
 {context}
 
-Question: {question}"""
+Question: {question}
+
+Answer:"""
             }
         ]
     )
@@ -154,9 +200,23 @@ def run_eval(session_id: str, eval_questions: list) -> dict:
         result = answer_question(session_id, question)
         answer = result["answer"].lower()
 
-        keyword_hits = [kw for kw in expected_keywords if kw.lower() in answer]
-        score = len(keyword_hits) / len(expected_keywords) if expected_keywords else 0
-        passed = score >= 0.5
+        not_found_phrases = [
+            "i don't have that information",
+            "not mentioned",
+            "not in the context",
+            "no information",
+            "cannot find"
+        ]
+        answered = not any(phrase in answer for phrase in not_found_phrases)
+
+        if expected_keywords:
+            keyword_hits = [kw for kw in expected_keywords if kw.lower() in answer]
+            score = len(keyword_hits) / len(expected_keywords)
+            passed = score >= 0.5
+        else:
+            score = 1.0 if answered else 0.0
+            passed = answered
+            keyword_hits = []
 
         if passed:
             correct += 1
@@ -172,7 +232,6 @@ def run_eval(session_id: str, eval_questions: list) -> dict:
         })
 
     accuracy = round(correct / len(eval_questions), 2) if eval_questions else 0
-
     return {
         "accuracy": accuracy,
         "passed": correct,
@@ -180,20 +239,36 @@ def run_eval(session_id: str, eval_questions: list) -> dict:
         "results": results
     }
 
-document_store = {}
+class QuestionRequest(BaseModel):
+    session_id: str
+    question: str
+
+class EvalRequest(BaseModel):
+    session_id: str
+    questions: Optional[list] = None
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
     try:
         content = await file.read()
         text = extract_text(content, file.filename)
-
         if not text.strip():
             return {"status": "error", "message": "Could not extract text from file."}
 
         import hashlib
         session_id = hashlib.md5(file.filename.encode()).hexdigest()[:8]
         chunk_count = index_document(session_id, text)
+
+        all_chunks = list(document_collections[session_id].get()["documents"])
+
+        print(f"Generating eval questions for session {session_id}...")
+        try:
+            eval_questions = generate_eval_questions(text, all_chunks)
+            eval_question_store[session_id] = eval_questions
+            print(f"Generated {len(eval_questions)} eval questions")
+        except Exception as e:
+            print(f"Eval generation failed: {e}")
+            eval_question_store[session_id] = []
 
         document_store[session_id] = {
             "filename": file.filename,
@@ -208,18 +283,11 @@ async def upload(file: UploadFile = File(...)):
             "filename": file.filename,
             "chunks_indexed": chunk_count,
             "preview": text[:300],
+            "eval_questions_generated": len(eval_question_store.get(session_id, [])),
             "message": f"Document indexed into {chunk_count} chunks. Ready for questions."
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
-
-class QuestionRequest(BaseModel):
-    session_id: str
-    question: str
-
-class EvalRequest(BaseModel):
-    session_id: str
-    questions: list
 
 @app.post("/ask")
 @limiter.limit("20/minute")
@@ -230,14 +298,21 @@ async def ask(request: Request, body: QuestionRequest):
 @app.post("/eval")
 @limiter.limit("5/minute")
 async def eval_endpoint(request: Request, body: EvalRequest):
-    if not body.questions:
-        return {"status": "error", "message": "No eval questions provided."}
-    result = run_eval(body.session_id, body.questions)
+    if body.questions:
+        questions = body.questions
+    else:
+        questions = eval_question_store.get(body.session_id, [])
+
+    if not questions:
+        return {"status": "error", "message": "No eval questions available. Upload a document first."}
+
+    result = run_eval(body.session_id, questions)
     return result
 
-@app.get("/sessions")
-async def sessions():
-    return {"sessions": document_store}
+@app.get("/eval-questions/{session_id}")
+async def get_eval_questions(session_id: str):
+    questions = eval_question_store.get(session_id, [])
+    return {"session_id": session_id, "questions": questions}
 
 @app.get("/status")
 async def status():
