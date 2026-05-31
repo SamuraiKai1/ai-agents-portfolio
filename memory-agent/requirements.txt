@@ -1,4 +1,5 @@
 anthropic
 chromadb
 fastapi
-uvicornslowapi
+uvicorn
+slowapi
