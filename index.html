@@ -319,7 +319,7 @@
       url: 'https://memory-agent-ngxi.onrender.com/chat',
       label: 'Memory agent',
       placeholder: 'Tell me your name, then ask a follow-up...',
-      welcome: 'I am Agent Smith. I do not forget what you tell me. Try it.',
+      welcome: 'I am Agent Smith, ACME Corp HR assistant. Tell me your name, ask about company policy, then watch me remember you.',
       payload: (msg, sid) => ({ session_id: sid, message: msg }),
       extract: (d) => d.response,
       session: true
