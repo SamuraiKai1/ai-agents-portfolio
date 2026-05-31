@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mustafa Sadree — Bring Your Own Data Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a1a14;
+    color: #e8f5f0;
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+  }
+  .container { width: 100%; max-width: 1100px; margin: 0 auto; }
+
+  .header {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; flex-wrap: wrap;
+    gap: 1rem; padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem; border-bottom: 1px solid #1d9e7525;
+  }
+  .back-link {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: #5DCAA5; text-decoration: none;
+    padding: 6px 12px; border: 1px solid #1d9e7530; border-radius: 6px;
+    transition: border-color 0.2s; margin-bottom: 10px;
+  }
+  .back-link:hover { border-color: #1D9E75; }
+  .name { font-size: 22px; font-weight: 600; color: #fff; }
+  .role { font-size: 11px; color: #1D9E75; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .desc { font-size: 13px; color: #9FE1CB; margin-top: 6px; opacity: 0.85; }
+  .header-right { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .header-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: #5DCAA5; text-decoration: none;
+    padding: 6px 12px; border: 1px solid #1d9e7530; border-radius: 6px;
+    transition: border-color 0.2s; cursor: pointer; background: none; font-family: inherit;
+  }
+  .header-btn:hover { border-color: #1D9E75; color: #1D9E75; }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .panel {
+    background: #0e2218; border: 1px solid #1d9e7520;
+    border-radius: 10px; padding: 1.125rem;
+  }
+  .panel-label {
+    font-size: 10px; color: #5DCAA5; letter-spacing: 1.5px;
+    text-transform: uppercase; opacity: 0.7; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .panel-label i { font-size: 13px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #1D9E75; display: inline-block; margin-right: 4px; }
+  .status-dot.offline { background: #E24B4A; }
+
+  .messages {
+    min-height: 280px; max-height: 380px; overflow-y: auto;
+    margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px;
+    scrollbar-width: thin; scrollbar-color: #1d9e7530 transparent;
+  }
+  .msg { font-size: 13px; line-height: 1.65; padding: 10px 13px; border-radius: 8px; max-width: 88%; white-space: pre-wrap; word-break: break-word; }
+  .msg.user { background: #1d9e7518; color: #9FE1CB; border: 1px solid #1d9e7525; align-self: flex-end; }
+  .msg.agent { background: #071510; color: #e8f5f0; border: 1px solid #1d9e7515; align-self: flex-start; }
+  .msg.thinking { color: #5DCAA5; opacity: 0.5; font-style: italic; font-size: 12px; border: none; background: none; padding: 2px 0; }
+  .msg.system { color: #1D9E75; font-size: 11px; border: none; background: #1d9e7508; padding: 7px 12px; align-self: center; border-radius: 6px; border: 1px solid #1d9e7520; }
+
+  .input-row { display: flex; gap: 8px; }
+  .chat-input {
+    flex: 1; background: #071510; border: 1px solid #1d9e7530;
+    border-radius: 8px; padding: 9px 13px; font-size: 13px;
+    color: #e8f5f0; outline: none; font-family: inherit; transition: border-color 0.2s;
+  }
+  .chat-input::placeholder { color: #5DCAA5; opacity: 0.4; }
+  .chat-input:focus { border-color: #1D9E75; }
+  .send-btn {
+    background: #1D9E75; border: none; border-radius: 8px;
+    padding: 9px 16px; cursor: pointer; color: #04342C;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    display: flex; align-items: center; gap: 5px; transition: background 0.2s;
+  }
+  .send-btn:hover { background: #5DCAA5; }
+  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .spin-notice { font-size: 11px; color: #5DCAA5; opacity: 0.5; margin-top: 7px; display: flex; align-items: center; gap: 4px; }
+  .spin-notice i { font-size: 12px; }
+
+  .upload-zone {
+    border: 1px dashed #1d9e7540; border-radius: 8px;
+    padding: 1.25rem; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s; margin-bottom: 10px;
+  }
+  .upload-zone:hover { border-color: #1D9E75; background: #1d9e7508; }
+  .upload-zone i { font-size: 24px; color: #1D9E75; opacity: 0.7; margin-bottom: 6px; display: block; }
+  .upload-zone .upload-title { font-size: 13px; color: #e8f5f0; margin-bottom: 3px; }
+  .upload-zone .upload-sub { font-size: 11px; color: #5DCAA5; opacity: 0.7; }
+  #file-input { display: none; }
+
+  .doc-info {
+    background: #071510; border: 1px solid #1d9e7518;
+    border-radius: 6px; padding: 10px 12px; margin-bottom: 10px;
+    display: none;
+  }
+  .doc-info .doc-name { font-size: 12px; color: #1D9E75; font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+  .doc-info .doc-meta { font-size: 11px; color: #5DCAA5; opacity: 0.7; }
+  .doc-info .doc-preview { font-size: 11px; color: #9FE1CB; opacity: 0.7; margin-top: 6px; font-family: monospace; line-height: 1.5; }
+
+  .sample-questions { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .sample-q {
+    font-size: 11px; color: #5DCAA5; padding: 7px 10px;
+    border: 1px solid #1d9e7520; border-radius: 6px;
+    cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    background: none; font-family: inherit; text-align: left;
+  }
+  .sample-q:hover { border-color: #1D9E75; background: #1d9e7508; color: #9FE1CB; }
+  .sample-q.hidden { display: none; }
+
+  .eval-section { margin-top: 10px; }
+  .eval-btn {
+    width: 100%; padding: 8px; border: 1px solid #1d9e7530;
+    border-radius: 7px; background: none; color: #5DCAA5;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .eval-btn:hover { border-color: #1D9E75; color: #1D9E75; }
+  .eval-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .eval-results {
+    margin-top: 10px; display: none;
+  }
+  .eval-score {
+    text-align: center; padding: 12px;
+    background: #071510; border: 1px solid #1d9e7520; border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  .eval-score .score-val { font-size: 28px; font-weight: 600; color: #1D9E75; }
+  .eval-score .score-label { font-size: 11px; color: #5DCAA5; opacity: 0.7; margin-top: 2px; }
+  .eval-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid #1d9e7510; font-size: 11px;
+  }
+  .eval-row:last-child { border-bottom: none; }
+  .eval-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .eval-dot.pass { background: #1D9E75; }
+  .eval-dot.fail { background: #E24B4A; }
+  .eval-q { color: #9FE1CB; flex: 1; }
+  .eval-score-pill {
+    font-size: 10px; padding: 2px 7px; border-radius: 10px;
+    font-family: monospace; flex-shrink: 0;
+  }
+  .eval-score-pill.pass { background: #1d9e7515; color: #1D9E75; border: 1px solid #1d9e7530; }
+  .eval-score-pill.fail { background: #E24B4a15; color: #F09595; border: 1px solid #E24B4a30; }
+
+  .sources-section { margin-top: 10px; display: none; }
+  .source-chunk {
+    font-size: 11px; color: #5DCAA5; opacity: 0.75;
+    padding: 8px 10px; border: 1px solid #1d9e7515;
+    border-radius: 6px; margin-bottom: 6px; font-family: monospace;
+    line-height: 1.5; background: #071510;
+  }
+
+  .footer {
+    padding-top: 1rem; border-top: 1px solid #1d9e7515;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  }
+  .footer-left { font-size: 11px; color: #1d9e7440; font-family: monospace; }
+  .footer-right { font-size: 11px; color: #5DCAA5; opacity: 0.6; }
+
+  @media (max-width: 700px) { .main-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div>
+      <a class="back-link" href="https://mustafa-ai-agents.netlify.app">
+        <i class="ti ti-arrow-left"></i> Portfolio
+      </a>
+      <div class="name">Bring Your Own Data Agent</div>
+      <div class="role">Dynamic RAG + Evals</div>
+      <div class="desc">Upload any document. Ask questions grounded in it. Run evals to measure accuracy.</div>
+    </div>
+    <div class="header-right">
+      <a class="header-btn" href="https://github.com/SamuraiKai1/ai-agents-portfolio/tree/main/byod-agent" target="_blank">
+        <i class="ti ti-brand-github"></i> GitHub
+      </a>
+      <a class="header-btn" href="eval-diagram.html" target="_blank">
+        <i class="ti ti-sitemap"></i> Eval diagram
+      </a>
+      <a class="header-btn" href="https://linkedin.com/in/mustafa-sadree" target="_blank">
+        <i class="ti ti-brand-linkedin"></i> LinkedIn
+      </a>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-label">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="agent-status">BYOD agent</span>
+      </div>
+      <div class="messages" id="messages">
+        <div class="msg agent">Upload a document on the right and I will answer any questions grounded strictly in its content. I will not use outside knowledge.</div>
+      </div>
+      <div id="sources-section" class="sources-section">
+        <div class="panel-label" style="margin-bottom:8px"><i class="ti ti-file-text"></i> Retrieved source chunks</div>
+        <div id="sources-list"></div>
+      </div>
+      <div class="input-row">
+        <input class="chat-input" id="input" placeholder="Upload a document first..." disabled onkeydown="if(event.key==='Enter' && !event.shiftKey) sendMsg()">
+        <button class="send-btn" id="send-btn" onclick="sendMsg()" disabled>
+          Send <i class="ti ti-arrow-right"></i>
+        </button>
+      </div>
+      <div class="spin-notice"><i class="ti ti-info-circle"></i> Free tier. First request may take 30s to wake up.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div class="panel">
+        <div class="panel-label"><i class="ti ti-upload"></i> Upload your document</div>
+        <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+          <i class="ti ti-file-upload"></i>
+          <div class="upload-title">Drop a file or click to browse</div>
+          <div class="upload-sub">PDF, TXT, or CSV supported</div>
+        </div>
+        <input type="file" id="file-input" accept=".pdf,.txt,.csv" onchange="uploadFile(this)">
+        <div class="doc-info" id="doc-info">
+          <div class="doc-name"><i class="ti ti-file-check"></i><span id="doc-name-text"></span></div>
+          <div class="doc-meta" id="doc-meta"></div>
+          <div class="doc-preview" id="doc-preview"></div>
+        </div>
+        <div class="panel-label" style="margin-top:12px"><i class="ti ti-help-circle"></i> Try asking</div>
+        <div class="sample-questions" id="sample-questions">
+          <div class="sample-q hidden" onclick="setInput(this.textContent)"></div>
+          <div class="sample-q hidden" onclick="setInput(this.textContent)"></div>
+          <div class="sample-q hidden" onclick="setInput(this.textContent)"></div>
+        </div>
+        <div style="font-size:11px;color:#5DCAA5;opacity:0.5;font-style:italic;" id="no-doc-hint">Upload a document to see suggested questions.</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-label"><i class="ti ti-chart-bar"></i> Eval — measure accuracy</div>
+        <div style="font-size:11px;color:#5DCAA5;opacity:0.75;margin-bottom:10px;line-height:1.6;">
+          Runs 5 test questions against your document and scores how accurately the agent answers. Checks keyword presence in each response.
+        </div>
+        <button class="eval-btn" id="eval-btn" onclick="runEval()" disabled>
+          <i class="ti ti-player-play"></i> Run eval on uploaded document
+        </button>
+        <div class="eval-results" id="eval-results">
+          <div class="eval-score">
+            <div class="score-val" id="eval-accuracy">0%</div>
+            <div class="score-label" id="eval-summary">0 / 0 questions passed</div>
+          </div>
+          <div id="eval-rows"></div>
+        </div>
+        <div style="margin-top:10px;">
+          <a class="header-btn" href="eval-diagram.html" target="_blank" style="font-size:11px;justify-content:center;width:100%">
+            <i class="ti ti-sitemap"></i> How evals work
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left" id="session-label">session: no document loaded</div>
+    <div class="footer-right">Dynamic RAG · ChromaDB · Evals · Claude Sonnet 4.6</div>
+  </div>
+
+</div>
+
+<script>
+  const API = 'https://byod-agent.onrender.com';
+  let currentSessionId = null;
+  let currentFilename = null;
+
+  const DEFAULT_EVAL_QUESTIONS = [
+    { question: "What is the main topic of this document?", expected_keywords: [] },
+    { question: "Who are the key people or organizations mentioned?", expected_keywords: [] },
+    { question: "What are the most important facts or numbers in this document?", expected_keywords: [] },
+    { question: "What conclusions or outcomes does the document describe?", expected_keywords: [] },
+    { question: "What problems or challenges does the document discuss?", expected_keywords: [] }
+  ];
+
+  async function checkStatus() {
+    try {
+      const res = await fetch(API + '/status');
+      const d = await res.json();
+      const dot = document.getElementById('status-dot');
+      const label = document.getElementById('agent-status');
+      if (d.status === 'online') {
+        dot.classList.remove('offline');
+        label.textContent = 'BYOD agent online';
+      } else {
+        dot.classList.add('offline');
+        label.textContent = 'Agent offline';
+      }
+    } catch(e) {
+      document.getElementById('status-dot').classList.add('offline');
+      document.getElementById('agent-status').textContent = 'Agent waking up...';
+    }
+  }
+
+  async function uploadFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML += '<div class="msg system"><i class="ti ti-loader"></i> Uploading and indexing ' + escHtml(file.name) + '...</div>';
+    msgs.scrollTop = msgs.scrollHeight;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(API + '/upload', { method: 'POST', body: formData });
+      const d = await res.json();
+
+      if (d.status === 'success') {
+        currentSessionId = d.session_id;
+        currentFilename = d.filename;
+
+        document.getElementById('doc-info').style.display = 'block';
+        document.getElementById('doc-name-text').textContent = d.filename;
+        document.getElementById('doc-meta').textContent = d.chunks_indexed + ' chunks indexed';
+        document.getElementById('doc-preview').textContent = d.preview.substring(0, 150) + '...';
+        document.getElementById('session-label').textContent = 'session: ' + d.session_id;
+        document.getElementById('no-doc-hint').style.display = 'none';
+
+        document.getElementById('input').disabled = false;
+        document.getElementById('send-btn').disabled = false;
+        document.getElementById('eval-btn').disabled = false;
+        document.getElementById('input').placeholder = 'Ask a question about ' + d.filename + '...';
+
+        setSampleQuestions(d.filename);
+
+        msgs.innerHTML += '<div class="msg agent">Document indexed. ' + d.chunks_indexed + ' chunks ready. Ask me anything about ' + escHtml(d.filename) + '.</div>';
+        document.getElementById('eval-results').style.display = 'none';
+      } else {
+        msgs.innerHTML += '<div class="msg agent" style="opacity:0.6;font-style:italic">Upload failed: ' + escHtml(d.message) + '</div>';
+      }
+    } catch(e) {
+      msgs.innerHTML += '<div class="msg agent" style="opacity:0.6;font-style:italic">Upload failed. Agent may be waking up. Try again in 30 seconds.</div>';
+    }
+
+    msgs.scrollTop = msgs.scrollHeight;
+    input.value = '';
+  }
+
+  function setSampleQuestions(filename) {
+    const lower = filename.toLowerCase();
+    let questions = [];
+
+    if (lower.includes('.csv')) {
+      questions = ['What columns are in this dataset?', 'What patterns do you see in this data?', 'What are the key values or metrics?'];
+    } else if (lower.includes('report') || lower.includes('annual')) {
+      questions = ['What are the key findings?', 'What metrics or numbers are highlighted?', 'What are the main conclusions?'];
+    } else {
+      questions = ['What is this document about?', 'Who are the key people mentioned?', 'What are the most important facts?'];
+    }
+
+    const btns = document.querySelectorAll('.sample-q');
+    questions.forEach((q, i) => {
+      if (btns[i]) {
+        btns[i].textContent = q;
+        btns[i].classList.remove('hidden');
+      }
+    });
+  }
+
+  async function sendMsg() {
+    if (!currentSessionId) return;
+    const input = document.getElementById('input');
+    const btn = document.getElementById('send-btn');
+    const msg = input.value.trim();
+    if (!msg || btn.disabled) return;
+
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML += '<div class="msg user">' + escHtml(msg) + '</div>';
+    msgs.innerHTML += '<div class="msg thinking" id="thinking">searching document...</div>';
+    input.value = '';
+    btn.disabled = true;
+    document.getElementById('sources-section').style.display = 'none';
+    msgs.scrollTop = msgs.scrollHeight;
+
+    try {
+      const res = await fetch(API + '/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: currentSessionId, question: msg })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      document.getElementById('thinking').remove();
+      msgs.innerHTML += '<div class="msg agent">' + escHtml(data.answer) + '</div>';
+
+      if (data.source_chunks && data.source_chunks.length > 0) {
+        const sec = document.getElementById('sources-section');
+        const list = document.getElementById('sources-list');
+        list.innerHTML = data.source_chunks.map(c =>
+          '<div class="source-chunk">' + escHtml(c.substring(0, 200)) + (c.length > 200 ? '...' : '') + '</div>'
+        ).join('');
+        sec.style.display = 'block';
+      }
+    } catch(e) {
+      document.getElementById('thinking').remove();
+      msgs.innerHTML += '<div class="msg agent" style="opacity:0.6;font-style:italic">Agent waking up on free tier. Try again in 30 seconds.</div>';
+    }
+
+    btn.disabled = false;
+    msgs.scrollTop = msgs.scrollHeight;
+    input.focus();
+  }
+
+  async function runEval() {
+    if (!currentSessionId) return;
+    const btn = document.getElementById('eval-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader"></i> Running eval...';
+
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML += '<div class="msg system">Running eval on ' + escHtml(currentFilename) + '...</div>';
+    msgs.scrollTop = msgs.scrollHeight;
+
+    try {
+      const res = await fetch(API + '/eval', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: currentSessionId, questions: DEFAULT_EVAL_QUESTIONS })
+      });
+      const d = await res.json();
+
+      const pct = Math.round(d.accuracy * 100);
+      document.getElementById('eval-accuracy').textContent = pct + '%';
+      document.getElementById('eval-accuracy').style.color = pct >= 80 ? '#1D9E75' : pct >= 60 ? '#EF9F27' : '#F09595';
+      document.getElementById('eval-summary').textContent = d.passed + ' / ' + d.total + ' questions passed';
+
+      const rows = d.results.map(r =>
+        `<div class="eval-row">
+          <div class="eval-dot ${r.passed ? 'pass' : 'fail'}"></div>
+          <div class="eval-q">${escHtml(r.question)}</div>
+          <div class="eval-score-pill ${r.passed ? 'pass' : 'fail'}">${Math.round(r.score * 100)}%</div>
+        </div>`
+      ).join('');
+      document.getElementById('eval-rows').innerHTML = rows;
+      document.getElementById('eval-results').style.display = 'block';
+
+      msgs.innerHTML += '<div class="msg system">Eval complete. Accuracy: ' + pct + '% (' + d.passed + '/' + d.total + ' passed)</div>';
+    } catch(e) {
+      msgs.innerHTML += '<div class="msg agent" style="opacity:0.6;font-style:italic">Eval failed. Try again.</div>';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-player-play"></i> Run eval again';
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function setInput(text) {
+    document.getElementById('input').value = text;
+    document.getElementById('input').focus();
+  }
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  checkStatus();
+</script>
+</body>
+</html>
