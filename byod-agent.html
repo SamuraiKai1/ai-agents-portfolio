@@ -437,7 +437,7 @@
       const res = await fetch(API + '/eval', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: currentSessionId, questions: DEFAULT_EVAL_QUESTIONS })
+        body: JSON.stringify({ session_id: currentSessionId })
       });
       const d = await res.json();
 
