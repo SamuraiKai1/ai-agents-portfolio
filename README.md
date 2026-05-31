@@ -2,31 +2,35 @@
 
 Five production AI agents built from scratch using Claude + FastAPI.
 
-Live portfolio: https://mustafa-ai-agents.netlify.app
+Live portfolio: https://samuraiKai1.github.io/ai-agents-portfolio
 
 ## Agents
 
 ### 1. Web search agent
 Answers questions using real-time web search via tool calling.
 - Live: https://web-search-agent-s1ez.onrender.com
+- Demo: https://samuraiKai1.github.io/ai-agents-portfolio
 
 ### 2. RAG document agent
 Answers questions grounded in private documents via vector retrieval.
 - Live: https://rag-agent-31ns.onrender.com
+- Demo: https://samuraiKai1.github.io/ai-agents-portfolio
 
 ### 3. Memory agent
 Remembers context across conversation turns, combined with RAG.
 - Live: https://memory-agent-ngxi.onrender.com
+- Demo: https://samuraiKai1.github.io/ai-agents-portfolio
 
 ### 4. Customer support agent
 Connected to a live Supabase database. Looks up customers, manages tickets, writes changes back to the database in real time. Accepts CSV uploads.
 - Live: https://support-agent-mprw.onrender.com
-- Demo page: https://mustafa-ai-agents.netlify.app/support-agent.html
+- Demo page: https://samuraikai1.github.io/ai-agents-portfolio/support-agent.html
 
 ### 5. Bring-your-own-data agent
 Upload any document (PDF, TXT, CSV) and ask questions grounded in it. Includes a built-in eval endpoint that scores answer accuracy against expected keywords.
 - Live: https://byod-agent.onrender.com
-- Eval diagram: https://mustafa-ai-agents.netlify.app/eval-diagram.html
+- Demo: https://samuraikai1.github.io/ai-agents-portfolio/byod-agent.html
+- Eval diagram: https://samuraikai1.github.io/ai-agents-portfolio/eval-diagram.html
 
 ## Stack
 - LLM: Claude Sonnet 4.6
@@ -36,7 +40,7 @@ Upload any document (PDF, TXT, CSV) and ask questions grounded in it. Includes a
 - API: FastAPI + uvicorn
 - Rate limiting: slowapi
 - Deployment: Render
-- Frontend: Netlify
+- Frontend: GitHub Pages
 
 ## Run any agent locally
 
