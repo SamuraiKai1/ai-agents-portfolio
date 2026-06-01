@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mustafa Sadree — Multi-Agent System</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #060f0b;
+    color: #e8f5f0;
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+  }
+  .container { width: 100%; max-width: 1200px; margin: 0 auto; }
+
+  .header {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; flex-wrap: wrap;
+    gap: 1rem; padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem; border-bottom: 1px solid #1d9e7520;
+  }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; color: #5DCAA5; text-decoration: none;
+    padding: 6px 12px; border: 1px solid #1d9e7530; border-radius: 6px;
+    transition: border-color 0.2s; margin-bottom: 10px;
+  }
+  .back-link:hover { border-color: #1D9E75; }
+  .name { font-size: 22px; font-weight: 600; color: #fff; }
+  .role { font-size: 11px; color: #1D9E75; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .desc { font-size: 13px; color: #9FE1CB; margin-top: 6px; opacity: 0.85; max-width: 560px; line-height: 1.6; }
+  .header-right { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .header-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: #5DCAA5; text-decoration: none;
+    padding: 6px 12px; border: 1px solid #1d9e7530; border-radius: 6px;
+    transition: border-color 0.2s; cursor: pointer; background: none; font-family: inherit;
+  }
+  .header-btn:hover { border-color: #1D9E75; color: #1D9E75; }
+
+  /* ARCHITECTURE BAR */
+  .arch-bar {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 1.5rem; padding: 1rem 1.25rem;
+    background: #0a1a12; border: 1px solid #1d9e7520; border-radius: 10px;
+    overflow-x: auto; white-space: nowrap; position: relative;
+  }
+  .arch-node {
+    display: inline-flex; flex-direction: column; align-items: center;
+    padding: 8px 16px; border-radius: 8px; flex-shrink: 0;
+    position: relative; overflow: hidden; transition: border-color 0.3s;
+  }
+  .arch-node::before {
+    content: '';
+    position: absolute; inset: 0; border-radius: 8px;
+    background: conic-gradient(from 0deg, transparent 0%, #1D9E75 10%, transparent 20%);
+    opacity: 0; transition: opacity 0.3s;
+    animation: none;
+  }
+  .arch-node.active::before { opacity: 1; animation: spin-border 1s linear infinite; }
+  .arch-node.done::before { opacity: 0; }
+  .arch-node.done { border-color: #1D9E75 !important; }
+  @keyframes spin-border {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .arch-inner {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center;
+    background: inherit; border-radius: 6px; padding: 2px 4px;
+  }
+  .arch-node.manager { background: #1a1535; border: 1px solid #534AB760; }
+  .arch-node.specialist { background: #0c2218; border: 1px solid #1D9E7540; }
+  .arch-node.tools { background: #1f1a0a; border: 1px solid #BA751740; }
+  .arch-node.output { background: #1a1f1c; border: 1px solid #5F5E5A40; }
+  .arch-label { font-size: 11px; font-weight: 500; }
+  .arch-label.manager { color: #CECBF6; }
+  .arch-label.specialist { color: #9FE1CB; }
+  .arch-label.tools { color: #FAC775; }
+  .arch-label.output { color: #D3D1C7; }
+  .arch-sub { font-size: 10px; opacity: 0.55; margin-top: 2px; }
+  .arch-sub.manager { color: #AFA9EC; }
+  .arch-sub.specialist { color: #5DCAA5; }
+  .arch-sub.tools { color: #EF9F27; }
+  .arch-sub.output { color: #B4B2A9; }
+  .arch-arrow { font-size: 12px; color: #1d9e7535; margin: 0 5px; flex-shrink: 0; }
+
+  /* MAIN LAYOUT */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+    align-items: start;
+  }
+
+  .left-col { display: flex; flex-direction: column; gap: 14px; }
+
+  .panel {
+    background: #0a1a12; border: 1px solid #1d9e7518;
+    border-radius: 10px; padding: 1.125rem;
+  }
+  .panel-label {
+    font-size: 10px; color: #5DCAA5; letter-spacing: 1.5px;
+    text-transform: uppercase; opacity: 0.7; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-label-left { display: flex; align-items: center; gap: 6px; }
+  .panel-label i { font-size: 13px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #1D9E75; display: inline-block; margin-right: 4px; }
+  .status-dot.offline { background: #E24B4A; }
+  .status-dot.thinking { background: #EF9F27; animation: pulse 0.8s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .task-input {
+    width: 100%; background: #060f0b; border: 1px solid #1d9e7530;
+    border-radius: 8px; padding: 10px 13px; font-size: 13px;
+    color: #e8f5f0; outline: none; font-family: inherit;
+    transition: border-color 0.2s; resize: none; line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .task-input::placeholder { color: #5DCAA5; opacity: 0.4; }
+  .task-input:focus { border-color: #1D9E75; }
+
+  .example-label { font-size: 10px; color: #5DCAA5; opacity: 0.55; margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase; }
+  .example-q {
+    font-size: 11px; padding: 7px 10px; border-radius: 6px;
+    border: 1px solid #1d9e7520; background: #060f0b; color: #5DCAA5;
+    cursor: pointer; margin-bottom: 5px; line-height: 1.5;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .example-q:hover { border-color: #1D9E75; color: #9FE1CB; }
+  .example-q i { font-size: 11px; margin-right: 4px; opacity: 0.6; }
+
+  .run-btn {
+    width: 100%; background: #1D9E75; border: none; border-radius: 8px;
+    padding: 11px; cursor: pointer; color: #04342C;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: background 0.2s; margin-top: 10px;
+  }
+  .run-btn:hover { background: #5DCAA5; }
+  .run-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .cost-notice { font-size: 10px; color: #5DCAA5; opacity: 0.45; margin-top: 6px; text-align: center; line-height: 1.5; }
+
+  /* LOG */
+  .log-feed {
+    height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px;
+    scrollbar-width: thin; scrollbar-color: #1d9e7530 transparent;
+  }
+  .log-entry {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 8px; border-radius: 5px; font-size: 11px;
+    line-height: 1.5; animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:translateY(0)} }
+  .log-entry.manager { background: #1a153515; border-left: 2px solid #534AB7; color: #CECBF6; }
+  .log-entry.plan { background: #0c221815; border-left: 2px solid #1D9E75; color: #9FE1CB; }
+  .log-entry.spawn { background: #0c221820; border-left: 2px solid #5DCAA5; color: #9FE1CB; }
+  .log-entry.tool { background: #1f1a0a20; border-left: 2px solid #BA7517; color: #FAC775; font-family: monospace; font-size: 10px; }
+  .log-entry.detail { border-left: 2px solid #1d9e7515; color: #5DCAA5; opacity: 0.65; }
+  .log-entry.complete { background: #0a1f1015; border-left: 2px solid #1D9E75; color: #1D9E75; }
+  .log-entry.done { background: #1D9E7512; border-left: 2px solid #1D9E75; color: #1D9E75; font-weight: 500; }
+  .log-entry.info { color: #5DCAA5; opacity: 0.5; border-left: 2px solid transparent; font-style: italic; }
+  .log-icon { font-size: 11px; flex-shrink: 0; margin-top: 1px; opacity: 0.8; }
+  .log-time { font-size: 9px; color: #1d9e7435; font-family: monospace; flex-shrink: 0; margin-top: 2px; }
+  .log-empty { font-size: 12px; color: #5DCAA5; opacity: 0.35; font-style: italic; padding: 40px 0; text-align: center; }
+
+  /* RIGHT COL */
+  .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+  .plan-cards { display: flex; flex-direction: column; gap: 6px; }
+  .plan-card {
+    background: #060f0b; border: 1px solid #1d9e7518;
+    border-radius: 8px; padding: 10px 12px;
+    animation: fadeIn 0.3s ease;
+  }
+  .plan-card.active { border-color: #1D9E7560; }
+  .plan-card.done { border-color: #1D9E75; }
+  .plan-role { font-size: 12px; font-weight: 500; color: #1D9E75; margin-bottom: 3px; display: flex; align-items: center; gap: 5px; }
+  .plan-goal { font-size: 11px; color: #5DCAA5; opacity: 0.8; line-height: 1.5; }
+  .plan-tools { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .tool-pill { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: #1f1a0a; color: #EF9F27; border: 1px solid #BA751730; }
+  .specialist-status { font-size: 10px; margin-left: auto; opacity: 0.7; }
+  .specialist-status.working { color: #EF9F27; }
+  .specialist-status.done { color: #1D9E75; }
+
+  .report-panel { display: none; }
+  .report-content {
+    font-size: 13px; line-height: 1.8; color: #e8f5f0;
+    max-height: 500px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: #1d9e7530 transparent;
+  }
+  .report-content h1, .report-content h2, .report-content h3 {
+    color: #1D9E75; margin: 14px 0 6px; font-weight: 500;
+  }
+  .report-content strong { color: #9FE1CB; }
+
+  .followup-section { display: none; }
+  .followup-row { display: flex; gap: 8px; }
+  .followup-input {
+    flex: 1; background: #060f0b; border: 1px solid #1d9e7530;
+    border-radius: 8px; padding: 9px 13px; font-size: 13px;
+    color: #e8f5f0; outline: none; font-family: inherit; transition: border-color 0.2s;
+  }
+  .followup-input::placeholder { color: #5DCAA5; opacity: 0.4; }
+  .followup-input:focus { border-color: #1D9E75; }
+  .followup-send {
+    background: #1D9E75; border: none; border-radius: 8px;
+    padding: 9px 14px; cursor: pointer; color: #04342C;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    display: flex; align-items: center; gap: 4px; transition: background 0.2s;
+  }
+  .followup-send:hover { background: #5DCAA5; }
+  .followup-send:disabled { opacity: 0.35; cursor: not-allowed; }
+  .followup-answer {
+    margin-top: 10px; font-size: 13px; line-height: 1.7;
+    color: #9FE1CB; padding: 10px 12px;
+    background: #060f0b; border: 1px solid #1d9e7520; border-radius: 7px;
+    display: none; white-space: pre-wrap;
+  }
+
+  .footer {
+    padding-top: 1rem; border-top: 1px solid #1d9e7515;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  }
+  .footer-left { font-size: 11px; color: #1d9e7440; font-family: monospace; }
+  .footer-right { font-size: 11px; color: #5DCAA5; opacity: 0.6; }
+
+  @media (max-width: 780px) { .main-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div>
+      <a class="back-link" href="https://samuraiKai1.github.io/ai-agents-portfolio">
+        <i class="ti ti-arrow-left"></i> Portfolio
+      </a>
+      <div class="name">Multi-Agent System</div>
+      <div class="role">Dynamic Orchestration</div>
+      <div class="desc">The manager agent decomposes any task, assembles a specialist team, delegates work, and synthesizes a final report. No hardcoded pipelines. Watch it think in real time.</div>
+    </div>
+    <div class="header-right">
+      <a class="header-btn" href="https://github.com/SamuraiKai1/ai-agents-portfolio/tree/main/multi-agent" target="_blank">
+        <i class="ti ti-brand-github"></i> GitHub
+      </a>
+      <a class="header-btn" href="https://linkedin.com/in/mustafa-sadree" target="_blank">
+        <i class="ti ti-brand-linkedin"></i> LinkedIn
+      </a>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE BAR -->
+  <div class="arch-bar">
+    <div class="arch-node manager" id="arch-manager">
+      <div class="arch-inner">
+        <span class="arch-label manager">Manager agent</span>
+        <span class="arch-sub manager">Plans + synthesizes</span>
+      </div>
+    </div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-node specialist" id="arch-s1">
+      <div class="arch-inner">
+        <span class="arch-label specialist" id="arch-s1-label">Specialist 1</span>
+        <span class="arch-sub specialist">Dynamic role</span>
+      </div>
+    </div>
+    <span class="arch-arrow">+</span>
+    <div class="arch-node specialist" id="arch-s2">
+      <div class="arch-inner">
+        <span class="arch-label specialist" id="arch-s2-label">Specialist 2</span>
+        <span class="arch-sub specialist">Dynamic role</span>
+      </div>
+    </div>
+    <span class="arch-arrow">+</span>
+    <div class="arch-node specialist" id="arch-s3">
+      <div class="arch-inner">
+        <span class="arch-label specialist" id="arch-s3-label">Specialist 3</span>
+        <span class="arch-sub specialist">Dynamic role</span>
+      </div>
+    </div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-node tools" id="arch-tools">
+      <div class="arch-inner">
+        <span class="arch-label tools">Tools</span>
+        <span class="arch-sub tools">search · extract · score · summarize</span>
+      </div>
+    </div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-node output" id="arch-output">
+      <div class="arch-inner">
+        <span class="arch-label output">Final report</span>
+        <span class="arch-sub output">Attributed + structured</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT: Input + Log -->
+    <div class="left-col">
+      <div class="panel">
+        <div class="panel-label">
+          <div class="panel-label-left"><i class="ti ti-terminal-2"></i> Task input</div>
+          <span style="font-size:10px;">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">online</span>
+          </span>
+        </div>
+
+        <textarea class="task-input" id="task-input" rows="3" placeholder="Describe any research or analysis task..."></textarea>
+
+        <div class="example-label">Example questions</div>
+        <div class="example-q" onclick="setTask(this.getAttribute('data-q'))" data-q="What are the biggest risks and opportunities of investing in AI infrastructure companies in 2026?">
+          <i class="ti ti-bulb"></i> What are the biggest risks and opportunities of investing in AI infrastructure companies in 2026?
+        </div>
+        <div class="example-q" onclick="setTask(this.getAttribute('data-q'))" data-q="How are enterprise SaaS companies using AI agents to reduce customer churn, and which approaches are working?">
+          <i class="ti ti-bulb"></i> How are enterprise SaaS companies using AI agents to reduce customer churn, and which approaches are working?
+        </div>
+
+        <button class="run-btn" id="run-btn" onclick="runAgents()">
+          <i class="ti ti-player-play"></i> Run multi-agent system
+        </button>
+        <div class="cost-notice">3 specialists · multiple web searches · 60-90 seconds<br>PDF export available in production</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-label">
+          <div class="panel-label-left"><i class="ti ti-activity"></i> Live agent log</div>
+          <button class="header-btn" style="padding:2px 8px;font-size:10px;" onclick="clearLog()"><i class="ti ti-trash"></i></button>
+        </div>
+        <div class="log-feed" id="log-feed">
+          <div class="log-empty">Run a task to watch the agents work.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Plan + Report + Followup -->
+    <div class="right-col">
+      <div class="panel" id="plan-panel" style="display:none;">
+        <div class="panel-label"><div class="panel-label-left"><i class="ti ti-sitemap"></i> Agent plan — assembled by manager</div></div>
+        <div class="plan-cards" id="plan-cards"></div>
+      </div>
+
+      <div class="panel report-panel" id="report-panel">
+        <div class="panel-label"><div class="panel-label-left"><i class="ti ti-file-analytics"></i> Final report</div></div>
+        <div class="report-content" id="report-content"></div>
+      </div>
+
+      <div class="panel followup-section" id="followup-section">
+        <div class="panel-label"><div class="panel-label-left"><i class="ti ti-message-circle"></i> Ask a follow-up</div></div>
+        <div style="font-size:11px;color:#5DCAA5;opacity:0.7;margin-bottom:8px;line-height:1.5;">The agent remembers the full research. Ask anything about the report without re-running.</div>
+        <div class="followup-row">
+          <input class="followup-input" id="followup-input" placeholder="What else would you like to know?" onkeydown="if(event.key==='Enter') askFollowup()">
+          <button class="followup-send" id="followup-btn" onclick="askFollowup()">
+            <i class="ti ti-arrow-right"></i>
+          </button>
+        </div>
+        <div class="followup-answer" id="followup-answer"></div>
+      </div>
+
+      <!-- Idle state -->
+      <div class="panel" id="idle-panel">
+        <div style="padding: 2rem 1rem; text-align: center;">
+          <i class="ti ti-robot" style="font-size:32px;color:#1D9E75;opacity:0.4;display:block;margin-bottom:12px;" aria-hidden="true"></i>
+          <div style="font-size:13px;color:#5DCAA5;opacity:0.6;line-height:1.7;">
+            The manager agent will decompose your task,<br>
+            assemble a specialist team, and produce a<br>
+            structured report here.
+          </div>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:6px;text-align:left;">
+            <div style="font-size:11px;color:#1d9e7540;display:flex;align-items:center;gap:6px;"><i class="ti ti-brain" style="color:#534AB7" aria-hidden="true"></i> Manager reasons about the task first</div>
+            <div style="font-size:11px;color:#1d9e7540;display:flex;align-items:center;gap:6px;"><i class="ti ti-sitemap" style="color:#1D9E75" aria-hidden="true"></i> Specialist roles are created dynamically</div>
+            <div style="font-size:11px;color:#1d9e7540;display:flex;align-items:center;gap:6px;"><i class="ti ti-tool" style="color:#BA7517" aria-hidden="true"></i> Each specialist uses only the tools it needs</div>
+            <div style="font-size:11px;color:#1d9e7540;display:flex;align-items:center;gap:6px;"><i class="ti ti-file-analytics" style="color:#5DCAA5" aria-hidden="true"></i> Manager synthesizes a final attributed report</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left" id="session-label">session: idle</div>
+    <div class="footer-right">Dynamic orchestration · Task decomposition · Multi-agent · Claude Sonnet 4.6</div>
+  </div>
+
+</div>
+
+<script>
+  const API = 'https://multi-agent-4pr9.onrender.com';
+  let currentSessionId = null;
+  let specialistCards = {};
+
+  const LOG_ICONS = {
+    manager: 'ti-brain',
+    plan: 'ti-sitemap',
+    spawn: 'ti-robot',
+    tool: 'ti-tool',
+    detail: 'ti-info-circle',
+    complete: 'ti-circle-check',
+    done: 'ti-sparkles',
+    info: 'ti-info-circle'
+  };
+
+  function setArchActive(id) {
+    document.querySelectorAll('.arch-node').forEach(n => n.classList.remove('active'));
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+  }
+
+  function setArchDone(id) {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('active'); el.classList.add('done'); }
+  }
+
+  function resetArch() {
+    document.querySelectorAll('.arch-node').forEach(n => {
+      n.classList.remove('active', 'done');
+    });
+    ['arch-s1-label','arch-s2-label','arch-s3-label'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = `Specialist ${i+1}`;
+    });
+  }
+
+  async function checkStatus() {
+    try {
+      const res = await fetch(API + '/status');
+      const d = await res.json();
+      if (d.status === 'online') {
+        document.getElementById('status-dot').classList.remove('offline');
+        document.getElementById('status-text').textContent = 'online';
+      }
+    } catch(e) {
+      document.getElementById('status-dot').classList.add('offline');
+      document.getElementById('status-text').textContent = 'waking up...';
+    }
+  }
+
+  function setTask(text) {
+    document.getElementById('task-input').value = text;
+    document.getElementById('task-input').focus();
+  }
+
+  function addLog(message, type) {
+    const feed = document.getElementById('log-feed');
+    const empty = feed.querySelector('.log-empty');
+    if (empty) empty.remove();
+
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    const icon = LOG_ICONS[type] || 'ti-circle';
+    const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+    entry.innerHTML = `<i class="ti ${icon} log-icon" aria-hidden="true"></i><span style="flex:1">${escHtml(message)}</span><span class="log-time">${time}</span>`;
+    feed.appendChild(entry);
+    feed.scrollTop = feed.scrollHeight;
+  }
+
+  function clearLog() {
+    document.getElementById('log-feed').innerHTML = '<div class="log-empty">Run a task to watch the agents work.</div>';
+  }
+
+  function renderPlan(plan) {
+    const panel = document.getElementById('plan-panel');
+    const cards = document.getElementById('plan-cards');
+    cards.innerHTML = '';
+    specialistCards = {};
+
+    plan.forEach((p, i) => {
+      const archId = `arch-s${i+1}-label`;
+      const el = document.getElementById(archId);
+      if (el) el.textContent = p.role.length > 16 ? p.role.substring(0,14)+'...' : p.role;
+
+      const card = document.createElement('div');
+      card.className = 'plan-card';
+      card.id = `plan-card-${i}`;
+      const tools = (p.tools || []).map(t => `<span class="tool-pill">${t}</span>`).join('');
+      card.innerHTML = `
+        <div class="plan-role">
+          <i class="ti ti-user-circle" aria-hidden="true"></i>
+          ${escHtml(p.role)}
+          <span class="specialist-status" id="status-${i}"></span>
+        </div>
+        <div class="plan-goal">${escHtml(p.goal)}</div>
+        <div class="plan-tools">${tools}</div>
+      `;
+      cards.appendChild(card);
+      specialistCards[p.role] = i;
+    });
+
+    panel.style.display = 'block';
+    document.getElementById('idle-panel').style.display = 'none';
+  }
+
+  function markSpecialistWorking(role) {
+    const i = specialistCards[role];
+    if (i === undefined) return;
+    const card = document.getElementById(`plan-card-${i}`);
+    const status = document.getElementById(`status-${i}`);
+    if (card) card.classList.add('active');
+    if (status) { status.textContent = 'working...'; status.className = 'specialist-status working'; }
+    setArchActive(`arch-s${i+1}`);
+    setArchActive('arch-tools');
+  }
+
+  function markSpecialistDone(role) {
+    const i = specialistCards[role];
+    if (i === undefined) return;
+    const card = document.getElementById(`plan-card-${i}`);
+    const status = document.getElementById(`status-${i}`);
+    if (card) { card.classList.remove('active'); card.classList.add('done'); }
+    if (status) { status.textContent = 'done'; status.className = 'specialist-status done'; }
+    setArchDone(`arch-s${i+1}`);
+  }
+
+  function renderReport(report) {
+    const panel = document.getElementById('report-panel');
+    const content = document.getElementById('report-content');
+
+    let html = escHtml(report)
+      .replace(/^### (.*?)(<br>|$)/gm, '<h3>$1</h3>')
+      .replace(/^## (.*?)(<br>|$)/gm, '<h2>$1</h2>')
+      .replace(/^# (.*?)(<br>|$)/gm, '<h1>$1</h1>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    content.innerHTML = html;
+    panel.style.display = 'block';
+  }
+
+  async function runAgents() {
+    const task = document.getElementById('task-input').value.trim();
+    if (!task) return;
+
+    const btn = document.getElementById('run-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader"></i> Agents working...';
+
+    document.getElementById('status-dot').className = 'status-dot thinking';
+    document.getElementById('status-text').textContent = 'running...';
+
+    document.getElementById('plan-panel').style.display = 'none';
+    document.getElementById('report-panel').style.display = 'none';
+    document.getElementById('followup-section').style.display = 'none';
+    document.getElementById('followup-answer').style.display = 'none';
+    document.getElementById('idle-panel').style.display = 'none';
+    clearLog();
+    resetArch();
+    setArchActive('arch-manager');
+
+    addLog('Manager received task. Reasoning about decomposition...', 'manager');
+
+    try {
+      const res = await fetch(API + '/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task })
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      currentSessionId = data.session_id;
+      document.getElementById('session-label').textContent = 'session: ' + currentSessionId;
+
+      if (data.plan) {
+        setArchDone('arch-manager');
+        renderPlan(data.plan);
+      }
+
+      if (data.logs) {
+        let delay = 0;
+        data.logs.forEach((log) => {
+          setTimeout(() => {
+            addLog(log.message, log.type);
+
+            if (log.type === 'spawn') {
+              const roleMatch = log.message.match(/Spawning specialist: (.+)/);
+              if (roleMatch) markSpecialistWorking(roleMatch[1]);
+            }
+            if (log.type === 'complete') {
+              const roleMatch = log.message.match(/^(.+) complete\./);
+              if (roleMatch) markSpecialistDone(roleMatch[1]);
+            }
+            if (log.type === 'done') {
+              setArchActive('arch-manager');
+              setTimeout(() => {
+                setArchDone('arch-manager');
+                setArchDone('arch-tools');
+                setArchActive('arch-output');
+                setTimeout(() => setArchDone('arch-output'), 1500);
+              }, 500);
+            }
+          }, delay);
+          delay += 100;
+        });
+
+        setTimeout(() => {
+          if (data.report) renderReport(data.report);
+          document.getElementById('followup-section').style.display = 'block';
+          document.getElementById('status-dot').className = 'status-dot';
+          document.getElementById('status-text').textContent = 'complete';
+          btn.disabled = false;
+          btn.innerHTML = '<i class="ti ti-player-play"></i> Run again';
+        }, delay + 400);
+      }
+
+    } catch(e) {
+      addLog('Agent system waking up on free tier. Try again in 30 seconds.', 'info');
+      document.getElementById('status-dot').className = 'status-dot offline';
+      document.getElementById('status-text').textContent = 'error';
+      document.getElementById('idle-panel').style.display = 'block';
+      resetArch();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-player-play"></i> Run multi-agent system';
+    }
+  }
+
+  async function askFollowup() {
+    if (!currentSessionId) return;
+    const input = document.getElementById('followup-input');
+    const btn = document.getElementById('followup-btn');
+    const answer = document.getElementById('followup-answer');
+    const question = input.value.trim();
+    if (!question) return;
+
+    btn.disabled = true;
+    answer.style.display = 'none';
+
+    try {
+      const res = await fetch(API + '/followup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: currentSessionId, question })
+      });
+      const d = await res.json();
+      answer.textContent = d.answer || d.error;
+      answer.style.display = 'block';
+      input.value = '';
+    } catch(e) {
+      answer.textContent = 'Follow-up failed. Try again.';
+      answer.style.display = 'block';
+    }
+
+    btn.disabled = false;
+  }
+
+  function escHtml(str) {
+    return (str || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/\n/g,'<br>');
+  }
+
+  checkStatus();
+</script>
+</body>
+</html>
