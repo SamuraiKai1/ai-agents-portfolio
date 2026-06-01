@@ -63,6 +63,12 @@
     gap: 12px;
     margin-bottom: 0.5rem;
   }
+  .agent-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 0.5rem;
+  }
 
   .agent-card {
     background: #0c1f18;
@@ -193,7 +199,14 @@
   </div>
 
   <div class="section-label">Advanced demos</div>
-  <div class="agent-grid-2">
+  <div class="agent-grid-3">
+    <div class="agent-card" style="border-color: #BA751760; background: #1f1a0a;">
+      <div class="agent-icon" style="background: #BA751720;"><i class="ti ti-sitemap" style="color: #EF9F27;"></i></div>
+      <div class="agent-name" style="color: #FAC775;">Multi-agent system</div>
+      <div class="agent-tech" style="color: #EF9F27;">Dynamic orchestration · Task decomposition · Live log</div>
+      <div class="agent-desc" style="color: #FAC775; opacity: 0.7;">Manager agent assembles a specialist team on the fly. No hardcoded pipelines.</div>
+      <a class="open-btn" href="multi-agent.html" style="color: #EF9F27; border-color: #BA751740;"><i class="ti ti-external-link"></i> Open full demo</a>
+    </div>
     <div class="agent-card advanced">
       <div class="agent-icon"><i class="ti ti-headset"></i></div>
       <div class="agent-name">Customer support agent</div>
