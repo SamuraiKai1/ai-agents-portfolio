@@ -1,0 +1,5 @@
+anthropic
+tavily-python
+fastapi
+uvicorn
+slowapi
