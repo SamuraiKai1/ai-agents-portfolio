@@ -312,20 +312,21 @@
           </span>
         </div>
 
-        <textarea class="task-input" id="task-input" rows="3" placeholder="Describe any research or analysis task..."></textarea>
+        <textarea class="task-input" id="task-input" rows="3" maxlength="150" placeholder="Describe any research or analysis task..." oninput="checkInput()">Compare Cursor, GitHub Copilot and Windsurf on pricing, IDE support and developer adoption in 2026</textarea>
 
         <div class="example-label">Example questions</div>
-        <div class="example-q" onclick="setTask(this.getAttribute('data-q'))" data-q="What are the biggest risks and opportunities of investing in AI infrastructure companies in 2026?">
-          <i class="ti ti-bulb"></i> What are the biggest risks and opportunities of investing in AI infrastructure companies in 2026?
+        <div class="example-q" onclick="setTask(this.getAttribute('data-q'))" data-q="Compare Anthropic, OpenAI and Cohere on enterprise API pricing and capabilities in 2026">
+          <i class="ti ti-bulb"></i> Compare Anthropic, OpenAI and Cohere on enterprise API pricing and capabilities in 2026
         </div>
-        <div class="example-q" onclick="setTask(this.getAttribute('data-q'))" data-q="How are enterprise SaaS companies using AI agents to reduce customer churn, and which approaches are working?">
-          <i class="ti ti-bulb"></i> How are enterprise SaaS companies using AI agents to reduce customer churn, and which approaches are working?
+        <div class="example-q" onclick="setTask(this.getAttribute('data-q'))" data-q="What are the main AI coding assistants in 2026, how do they compare on features and who is winning market share?">
+          <i class="ti ti-bulb"></i> What are the main AI coding assistants in 2026, how do they compare on features and who is winning market share?
         </div>
 
         <button class="run-btn" id="run-btn" onclick="runAgents()">
           <i class="ti ti-player-play"></i> Run multi-agent system
         </button>
-        <div class="cost-notice">3 specialists · multiple web searches · 60-90 seconds<br>PDF export available in production</div>
+        <div class="cost-notice">3 specialists · multiple web searches · 60-90 seconds</div>
+        <div class="cost-notice" style="margin-top:4px;"><span id="char-count" style="color:#1D9E75;">0</span>/150 characters &nbsp;·&nbsp; <a href="https://github.com/SamuraiKai1/ai-agents-portfolio/tree/main/multi-agent" target="_blank" style="color:#5DCAA5;text-decoration:none;">Clone the repo</a> to run unlimited queries</div>
       </div>
 
       <div class="panel">
@@ -444,6 +445,19 @@
   function setTask(text) {
     document.getElementById('task-input').value = text;
     document.getElementById('task-input').focus();
+    checkInput();
+  }
+
+  function checkInput() {
+    const input = document.getElementById('task-input');
+    const btn = document.getElementById('run-btn');
+    const counter = document.getElementById('char-count');
+    const len = input.value.trim().length;
+    if (counter) {
+      counter.textContent = len;
+      counter.style.color = len > 130 ? '#EF9F27' : '#1D9E75';
+    }
+    btn.disabled = len === 0 || len > 150;
   }
 
   function addLog(message, type) {
@@ -659,6 +673,7 @@
   }
 
   checkStatus();
+  checkInput();
 </script>
 </body>
 </html>
