@@ -1,4 +1,10 @@
 import anthropic
+from dotenv import load_dotenv
+from langfuse import observe, get_client
+
+load_dotenv()
+
+langfuse = get_client()
 import os
 import io
 import json
@@ -97,6 +103,7 @@ def retrieve_chunks(session_id: str, query: str, n_results: int = 4) -> list:
     results = collection.query(query_texts=[query], n_results=n_results)
     return results["documents"][0]
 
+@observe()
 def generate_eval_questions(text_sample: str, all_chunks: list) -> list:
     prompt = f"""You are creating an evaluation set for a RAG agent.
 
@@ -145,6 +152,7 @@ Document excerpt:
 
     return verified[:5]
 
+@observe()
 def answer_question(session_id: str, question: str) -> dict:
     chunks = retrieve_chunks(session_id, question)
     if not chunks:
@@ -293,6 +301,7 @@ async def upload(file: UploadFile = File(...)):
 @limiter.limit("20/minute")
 async def ask(request: Request, body: QuestionRequest):
     result = answer_question(body.session_id, body.question)
+    langfuse.flush()
     return result
 
 @app.post("/eval")
