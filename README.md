@@ -1,6 +1,6 @@
 # AI Agents Portfolio — Mustafa Sadree
 
-Five production AI agents built from scratch using Claude + FastAPI.
+Six production AI agents built from scratch using Claude + FastAPI.
 
 Live portfolio: https://samuraiKai1.github.io/ai-agents-portfolio
 
@@ -31,6 +31,11 @@ Upload any document (PDF, TXT, CSV) and ask questions grounded in it. Includes a
 - Live: https://byod-agent.onrender.com
 - Demo: https://samuraikai1.github.io/ai-agents-portfolio/byod-agent.html
 - Eval diagram: https://samuraikai1.github.io/ai-agents-portfolio/eval-diagram.html
+
+### 6. Multi-agent system
+Dynamic orchestration. Manager agent decomposes tasks, assembles specialist teams, delegates work, synthesizes reports.
+- Live: https://multi-agent-4pr9.onrender.com
+- Demo page: https://samuraiKai1.github.io/ai-agents-portfolio/multi-agent.html
 
 ## Stack
 - LLM: Claude Sonnet 4.6
