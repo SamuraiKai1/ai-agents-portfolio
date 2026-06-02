@@ -124,11 +124,21 @@ Return ONLY a JSON array, no other text:
 Document excerpt:
 {text_sample[:2000]}"""
 
-    response = anthropic_client.messages.create(
+    with langfuse.start_as_current_observation(
+        as_type="generation",
+        name="eval-question-generation",
         model="claude-sonnet-4-6",
-        max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}]
-    )
+    ) as generation:
+        response = anthropic_client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        generation.update(
+            input=prompt,
+            output=response.content[0].text,
+            usage={"input": response.usage.input_tokens, "output": response.usage.output_tokens}
+        )
 
     raw = response.content[0].text.strip()
     if raw.startswith("```"):
@@ -164,13 +174,7 @@ def answer_question(session_id: str, question: str) -> dict:
 
     context = "\n\n---\n\n".join(chunks)
 
-    response = anthropic_client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1024,
-        messages=[
-            {
-                "role": "user",
-                "content": f"""You are a document assistant. Answer the question using ONLY the text in the context below.
+    prompt_text = f"""You are a document assistant. Answer the question using ONLY the text in the context below.
 
 Rules:
 - Use only information explicitly stated in the context
@@ -184,9 +188,22 @@ Context:
 Question: {question}
 
 Answer:"""
-            }
-        ]
-    )
+
+    with langfuse.start_as_current_observation(
+        as_type="generation",
+        name="answer-question",
+        model="claude-sonnet-4-6",
+    ) as generation:
+        response = anthropic_client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt_text}]
+        )
+        generation.update(
+            input=prompt_text,
+            output=response.content[0].text,
+            usage={"input": response.usage.input_tokens, "output": response.usage.output_tokens}
+        )
 
     answer = response.content[0].text
     grounded = "don't have that information" not in answer.lower()
