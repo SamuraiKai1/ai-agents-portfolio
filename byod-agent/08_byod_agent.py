@@ -102,14 +102,25 @@ def retrieve_chunks(session_id: str, query: str, n_results: int = 4) -> list:
         return []
     # embed the question using the same model used during indexing
     query_embedding = embedder.encode([query]).tolist()[0]
-    # query pinecone for the nearest vectors in this session's namespace
+    # step 1: retrieve more candidates than we need so re-ranker has room to work
     results = pinecone_index.query(
         vector=query_embedding,
-        top_k=n_results,
+        top_k=n_results * 3,
         namespace=session_id,
-        include_metadata=True  # we need the text back, not just the vector ids
+        include_metadata=True
     )
-    return [match["metadata"]["text"] for match in results["matches"]]
+    candidates = [match["metadata"]["text"] for match in results["matches"]]
+    if not candidates:
+        return []
+    # step 2: re-rank candidates using pinecone built-in re-ranker
+    reranked = pc.inference.rerank(
+        model="bge-reranker-v2-m3",
+        query=query,
+        documents=candidates,
+        top_n=n_results,
+        return_documents=True
+    )
+    return [item.document['text'] for item in reranked.data]
 
 @observe()
 def generate_eval_questions(text_sample: str, all_chunks: list) -> list:
