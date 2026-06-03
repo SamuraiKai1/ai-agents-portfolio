@@ -10,6 +10,7 @@ import io
 import json
 from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
+from rank_bm25 import BM25Okapi
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -37,6 +38,8 @@ pinecone_index = pc.Index('byod-agent')
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
 
 document_namespaces = {}
+bm25_store = {}  # stores bm25 index per session
+chunks_store = {}  # stores raw chunks per session for bm25 retrieval
 document_store = {}
 eval_question_store = {}
 
@@ -95,28 +98,62 @@ def index_document(session_id: str, text: str) -> int:
     # upsert into pinecone under a namespace per session so sessions don't mix
     pinecone_index.upsert(vectors=vectors, namespace=session_id)
     document_namespaces[session_id] = True
+    # build bm25 index from same chunks for keyword search
+    # tokenize each chunk into words so bm25 can count term frequencies
+    tokenized_chunks = [chunk.lower().split() for chunk in chunks]
+    bm25_store[session_id] = BM25Okapi(tokenized_chunks)
+    chunks_store[session_id] = chunks  # keep raw chunks for retrieval
     return len(chunks)
 
 def retrieve_chunks(session_id: str, query: str, n_results: int = 4) -> list:
     if session_id not in document_namespaces:
         return []
-    # embed the question using the same model used during indexing
+
+    # --- vector search ---
     query_embedding = embedder.encode([query]).tolist()[0]
-    # step 1: retrieve more candidates than we need so re-ranker has room to work
-    results = pinecone_index.query(
+    vector_results = pinecone_index.query(
         vector=query_embedding,
         top_k=n_results * 3,
         namespace=session_id,
         include_metadata=True
     )
-    candidates = [match["metadata"]["text"] for match in results["matches"]]
-    if not candidates:
+    # build a dict of chunk_text -> vector score
+    vector_scores = {
+        match["metadata"]["text"]: match["score"]
+        for match in vector_results["matches"]
+    }
+
+    # --- bm25 keyword search ---
+    bm25 = bm25_store.get(session_id)
+    all_chunks = chunks_store.get(session_id, [])
+    tokenized_query = query.lower().split()
+    bm25_scores_raw = bm25.get_scores(tokenized_query)
+    # normalize bm25 scores to 0-1 range so they are comparable to cosine scores
+    bm25_max = max(bm25_scores_raw) if max(bm25_scores_raw) > 0 else 1
+    bm25_scores = {
+        all_chunks[i]: bm25_scores_raw[i] / bm25_max
+        for i in range(len(all_chunks))
+    }
+
+    # --- combine scores: 60% vector, 40% bm25 ---
+    all_chunk_texts = set(vector_scores.keys()) | set(bm25_scores.keys())
+    combined = {}
+    for chunk in all_chunk_texts:
+        v_score = vector_scores.get(chunk, 0)
+        b_score = bm25_scores.get(chunk, 0)
+        combined[chunk] = 0.6 * v_score + 0.4 * b_score
+
+    # sort by combined score and take top candidates for re-ranking
+    top_candidates = sorted(combined, key=combined.get, reverse=True)[:n_results * 2]
+
+    if not top_candidates:
         return []
-    # step 2: re-rank candidates using pinecone built-in re-ranker
+
+    # --- re-rank the combined candidates ---
     reranked = pc.inference.rerank(
         model="bge-reranker-v2-m3",
         query=query,
-        documents=candidates,
+        documents=top_candidates,
         top_n=n_results,
         return_documents=True
     )
