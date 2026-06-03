@@ -8,8 +8,8 @@ langfuse = get_client()
 import os
 import io
 import json
-import chromadb
-from chromadb.utils import embedding_functions
+from pinecone import Pinecone
+from sentence_transformers import SentenceTransformer
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -32,10 +32,11 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-chroma_client = chromadb.Client()
-embedding_fn = embedding_functions.DefaultEmbeddingFunction()
+pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
+pinecone_index = pc.Index('byod-agent')
+embedder = SentenceTransformer('all-MiniLM-L6-v2')
 
-document_collections = {}
+document_namespaces = {}
 document_store = {}
 eval_question_store = {}
 
@@ -77,31 +78,38 @@ def extract_text(file_content: bytes, filename: str) -> str:
     return file_content.decode("utf-8", errors="ignore")
 
 def index_document(session_id: str, text: str) -> int:
-    collection_name = f"doc_{session_id}"
-    try:
-        chroma_client.delete_collection(collection_name)
-    except:
-        pass
-    collection = chroma_client.create_collection(
-        name=collection_name,
-        embedding_function=embedding_fn
-    )
     chunks = chunk_text(text)
     if not chunks:
         return 0
-    collection.add(
-        documents=chunks,
-        ids=[f"chunk_{i}" for i in range(len(chunks))]
-    )
-    document_collections[session_id] = collection
+    # embed all chunks into vectors using local sentence-transformers model
+    embeddings = embedder.encode(chunks).tolist()
+    # build pinecone upsert payload: each vector needs an id, the embedding, and metadata
+    vectors = [
+        {
+            "id": f"{session_id}_chunk_{i}",
+            "values": embeddings[i],
+            "metadata": {"text": chunks[i], "session_id": session_id}
+        }
+        for i in range(len(chunks))
+    ]
+    # upsert into pinecone under a namespace per session so sessions don't mix
+    pinecone_index.upsert(vectors=vectors, namespace=session_id)
+    document_namespaces[session_id] = True
     return len(chunks)
 
 def retrieve_chunks(session_id: str, query: str, n_results: int = 4) -> list:
-    collection = document_collections.get(session_id)
-    if not collection:
+    if session_id not in document_namespaces:
         return []
-    results = collection.query(query_texts=[query], n_results=n_results)
-    return results["documents"][0]
+    # embed the question using the same model used during indexing
+    query_embedding = embedder.encode([query]).tolist()[0]
+    # query pinecone for the nearest vectors in this session's namespace
+    results = pinecone_index.query(
+        vector=query_embedding,
+        top_k=n_results,
+        namespace=session_id,
+        include_metadata=True  # we need the text back, not just the vector ids
+    )
+    return [match["metadata"]["text"] for match in results["matches"]]
 
 @observe()
 def generate_eval_questions(text_sample: str, all_chunks: list) -> list:
@@ -284,7 +292,7 @@ async def upload(file: UploadFile = File(...)):
         session_id = hashlib.md5(file.filename.encode()).hexdigest()[:8]
         chunk_count = index_document(session_id, text)
 
-        all_chunks = list(document_collections[session_id].get()["documents"])
+        all_chunks = chunk_text(text)
 
         print(f"Generating eval questions for session {session_id}...")
         try:
@@ -345,7 +353,7 @@ async def status():
     return {
         "status": "online",
         "model": "claude-sonnet-4-6",
-        "active_documents": len(document_collections),
+        "active_documents": len(document_namespaces),
         "pdf_support": PDF_SUPPORT
     }
 
