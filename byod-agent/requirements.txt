@@ -66,6 +66,7 @@ MarkupSafe==3.0.3
 mdurl==0.1.2
 mmh3==5.2.1
 mpmath==1.3.0
+msgspec==0.21.1
 multidict==6.7.1
 networkx==3.6.1
 numpy==2.4.6
@@ -82,6 +83,7 @@ orjson==3.11.9
 ormsgpack==1.12.2
 overrides==7.7.0
 packaging==26.2
+pinecone==9.0.1
 postgrest==2.30.1
 propcache==0.5.2
 protobuf==6.33.6
@@ -102,6 +104,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 python-multipart==0.0.29
 PyYAML==6.0.3
+rank-bm25==0.2.2
 realtime==2.30.1
 referencing==0.37.0
 regex==2026.5.9
