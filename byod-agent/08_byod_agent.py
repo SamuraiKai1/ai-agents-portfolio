@@ -9,7 +9,6 @@ import os
 import io
 import json
 from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
 from rank_bm25 import BM25Okapi
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,8 +34,6 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
 pinecone_index = pc.Index('byod-agent')
-embedder = SentenceTransformer('all-MiniLM-L6-v2')
-
 document_namespaces = {}
 bm25_store = {}  # stores bm25 index per session
 chunks_store = {}  # stores raw chunks per session for bm25 retrieval
@@ -85,7 +82,12 @@ def index_document(session_id: str, text: str) -> int:
     if not chunks:
         return 0
     # embed all chunks into vectors using local sentence-transformers model
-    embeddings = embedder.encode(chunks).tolist()
+    embedding_response = pc.inference.embed(
+        model='multilingual-e5-large',
+        inputs=chunks,
+        parameters={'input_type': 'passage'}
+    )
+    embeddings = [e['values'] for e in embedding_response.data]
     # build pinecone upsert payload: each vector needs an id, the embedding, and metadata
     vectors = [
         {
@@ -110,7 +112,12 @@ def retrieve_chunks(session_id: str, query: str, n_results: int = 4) -> list:
         return []
 
     # --- vector search ---
-    query_embedding = embedder.encode([query]).tolist()[0]
+    query_embedding_response = pc.inference.embed(
+        model='multilingual-e5-large',
+        inputs=[query],
+        parameters={'input_type': 'query'}
+    )
+    query_embedding = query_embedding_response.data[0]['values']
     vector_results = pinecone_index.query(
         vector=query_embedding,
         top_k=n_results * 3,
