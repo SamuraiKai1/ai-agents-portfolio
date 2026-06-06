@@ -1,11 +1,15 @@
 import anthropic
 from dotenv import load_dotenv
 from langfuse import observe, get_client
+import os
+import time
+import random
+from supabase import create_client
 
 load_dotenv()
 
 langfuse = get_client()
-import os
+supabase = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_SERVICE_KEY'))
 import io
 import json
 from pinecone import Pinecone
@@ -39,6 +43,43 @@ bm25_store = {}  # stores bm25 index per session
 chunks_store = {}  # stores raw chunks per session for bm25 retrieval
 document_store = {}
 eval_question_store = {}
+
+
+def with_backoff(fn, max_retries=3):
+    """calls fn with exponential backoff on failure"""
+    for attempt in range(max_retries):
+        try:
+            return fn()
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise  # out of retries, raise the error
+            wait = (2 ** attempt) + random.uniform(0, 1)  # 1s, 2s, 4s with jitter
+            print(f"[backoff] attempt {attempt + 1} failed: {e}. retrying in {wait:.1f}s")
+            time.sleep(wait)
+
+def save_memory(session_id: str, role: str, content: str):
+    """persists a message to supabase so it survives server restarts"""
+    try:
+        supabase.table("agent_memory").insert({
+            "session_id": session_id,
+            "role": role,
+            "content": content
+        }).execute()
+    except Exception as e:
+        print(f"[memory] failed to save: {e}")
+
+def load_memory(session_id: str) -> list:
+    """loads conversation history from supabase for this session"""
+    try:
+        result = supabase.table("agent_memory")\
+            .select("role, content")\
+            .eq("session_id", session_id)\
+            .order("created_at")\
+            .execute()
+        return result.data
+    except Exception as e:
+        print(f"[memory] failed to load: {e}")
+        return []
 
 def chunk_text(text: str, chunk_size: int = 150, overlap: int = 30) -> list:
     words = text.split()
@@ -98,7 +139,7 @@ def index_document(session_id: str, text: str) -> int:
         for i in range(len(chunks))
     ]
     # upsert into pinecone under a namespace per session so sessions don't mix
-    pinecone_index.upsert(vectors=vectors, namespace=session_id)
+    with_backoff(lambda: pinecone_index.upsert(vectors=vectors, namespace=session_id))
     document_namespaces[session_id] = True
     # build bm25 index from same chunks for keyword search
     # tokenize each chunk into words so bm25 can count term frequencies
@@ -118,12 +159,12 @@ def retrieve_chunks(session_id: str, query: str, n_results: int = 4) -> list:
         parameters={'input_type': 'query'}
     )
     query_embedding = query_embedding_response.data[0]['values']
-    vector_results = pinecone_index.query(
+    vector_results = with_backoff(lambda: pinecone_index.query(
         vector=query_embedding,
         top_k=n_results * 3,
         namespace=session_id,
         include_metadata=True
-    )
+    ))
     # build a dict of chunk_text -> vector score
     vector_scores = {
         match["metadata"]["text"]: match["score"]
@@ -270,6 +311,10 @@ Answer:"""
 
     answer = response.content[0].text
     grounded = "don't have that information" not in answer.lower()
+
+    # persist this turn to supabase so memory survives restarts
+    save_memory(session_id, "user", question)
+    save_memory(session_id, "assistant", answer)
 
     return {
         "answer": answer,
