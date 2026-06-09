@@ -81,6 +81,40 @@ def load_memory(session_id: str) -> list:
         print(f"[memory] failed to load: {e}")
         return []
 
+
+def summarize_history(session_id: str, history: list) -> list:
+    """when conversation history exceeds 6 turns, summarize older turns
+    and keep only the summary plus the last 2 turns"""
+    if len(history) <= 6:
+        return history
+    
+    # split: old turns to summarize, recent turns to keep
+    old_turns = history[:-2]
+    recent_turns = history[-2:]
+    
+    # format old turns for summarization
+    history_text = "\n".join([
+        f"{turn['role'].upper()}: {turn['content']}"
+        for turn in old_turns
+    ])
+    
+    response = anthropic_client.messages.create(
+        model="claude-haiku-4-5",
+        max_tokens=200,
+        messages=[{
+            "role": "user",
+            "content": f"Summarize this conversation in 2-3 sentences, capturing key facts discussed:\n\n{history_text}"
+        }]
+    )
+    
+    summary = response.content[0].text
+    
+    # return summary as a system message plus recent turns
+    return [
+        {"role": "user", "content": f"[Previous conversation summary: {summary}]"},
+        {"role": "assistant", "content": "Understood. I have context from our previous conversation."}
+    ] + recent_turns
+
 def chunk_text(text: str, chunk_size: int = 150, overlap: int = 30) -> list:
     words = text.split()
     chunks = []
@@ -278,6 +312,10 @@ def answer_question(session_id: str, question: str) -> dict:
 
     context = "\n\n---\n\n".join(chunks)
 
+    # load and compress conversation history from supabase
+    raw_history = load_memory(session_id)
+    history = summarize_history(session_id, raw_history)
+
     prompt_text = f"""You are a document assistant. Answer the question using ONLY the text in the context below.
 
 Rules:
@@ -301,7 +339,7 @@ Answer:"""
         response = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=1024,
-            messages=[{"role": "user", "content": prompt_text}]
+            messages=history + [{"role": "user", "content": prompt_text}]
         )
         generation.update(
             input=prompt_text,
