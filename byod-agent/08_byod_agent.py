@@ -115,6 +115,30 @@ def summarize_history(session_id: str, history: list) -> list:
         {"role": "assistant", "content": "Understood. I have context from our previous conversation."}
     ] + recent_turns
 
+
+def verify_answer(question: str, context: str, answer: str) -> bool:
+    """second llm call to verify the answer is grounded in the context
+    only runs when the cheap string match passes"""
+    response = anthropic_client.messages.create(
+        model="claude-haiku-4-5",  # cheap model for verification
+        max_tokens=50,
+        messages=[{
+            "role": "user",
+            "content": f"""Does this answer contain ONLY information from the context below?
+Reply with YES or NO only.
+
+Context: {context[:500]}
+
+Question: {question}
+
+Answer: {answer}
+
+Grounded (YES/NO):"""
+        }]
+    )
+    verdict = response.content[0].text.strip().upper()
+    return verdict.startswith("YES")
+
 def chunk_text(text: str, chunk_size: int = 150, overlap: int = 30) -> list:
     words = text.split()
     chunks = []
@@ -349,6 +373,9 @@ Answer:"""
 
     answer = response.content[0].text
     grounded = "don't have that information" not in answer.lower()
+    # only run expensive self-verification if cheap check passes
+    if grounded:
+        grounded = verify_answer(question, context, answer)
 
     # persist this turn to supabase so memory survives restarts
     save_memory(session_id, "user", question)
