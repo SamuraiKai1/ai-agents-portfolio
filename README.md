@@ -38,12 +38,18 @@ Dynamic orchestration. Manager agent decomposes tasks, assembles specialist team
 - Demo page: https://samuraiKai1.github.io/ai-agents-portfolio/multi-agent.html
 
 ## Stack
-- LLM: Claude Sonnet 4.6
-- Embeddings: ChromaDB default (all-MiniLM-L6-v2)
-- Vector DB: ChromaDB
+- LLM: Claude Sonnet / Haiku (Anthropic)
+- Vector DB: Pinecone (serverless, hybrid search)
+- Embeddings: Pinecone hosted multilingual-e5-large
+- Keyword search: BM25 (rank-bm25)
+- Re-ranking: Pinecone bge-reranker-v2-m3
+- Observability: Langfuse v4
+- Evals: RAGAS
+- Orchestration: LangChain + LangGraph
+- Workflow automation: n8n
+- MCP: FastMCP (Streamable HTTP)
 - Database: Supabase (PostgreSQL)
 - API: FastAPI + uvicorn
-- Rate limiting: slowapi
 - Deployment: Render
 - Frontend: GitHub Pages
 
