@@ -65,20 +65,23 @@
   }
   .agent-grid-3 {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 0.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 1.5rem;
   }
 
   .agent-card {
+    display: block;
     background: #0c1f18;
     border: 1px solid #1d9e7525;
     border-radius: 10px;
-    padding: 1rem;
+    padding: 1.75rem;
     cursor: pointer;
     transition: border-color 0.2s, background 0.2s;
     user-select: none;
     position: relative;
+    text-decoration: none;
+    color: inherit;
   }
   .agent-card:hover { border-color: #1D9E75; }
   .agent-card.active { background: #112b1e; border-color: #1D9E75; }
@@ -86,15 +89,15 @@
   .agent-card.advanced:hover { border-color: #1D9E75; }
 
   .agent-icon {
-    width: 34px; height: 34px;
-    background: #1d9e7518; border-radius: 8px;
+    width: 48px; height: 48px;
+    background: #1d9e7518; border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
   }
-  .agent-icon i { font-size: 17px; color: #1D9E75; }
-  .agent-name { font-size: 13px; font-weight: 600; color: #e8f5f0; margin-bottom: 5px; }
-  .agent-tech { font-size: 11px; color: #1D9E75; margin-bottom: 5px; font-family: monospace; letter-spacing: 0.2px; }
-  .agent-desc { font-size: 11px; color: #5DCAA5; opacity: 0.85; line-height: 1.5; }
+  .agent-icon i { font-size: 24px; color: #1D9E75; }
+  .agent-name { font-size: 18px; font-weight: 600; color: #e8f5f0; margin-bottom: 8px; }
+  .agent-tech { font-size: 12px; color: #1D9E75; margin-bottom: 10px; font-family: monospace; letter-spacing: 0.2px; }
+  .agent-desc { font-size: 13px; color: #5DCAA5; opacity: 0.85; line-height: 1.6; margin-bottom: 14px; }
 
   .open-btn {
     display: inline-flex; align-items: center; gap: 4px;
@@ -185,7 +188,7 @@
       <div>
         <div class="name">Mustafa Sadree</div>
         <div class="role">Agentic AI Engineer</div>
-        <div class="tagline">Built six production AI agents from scratch <span>in a weekend.</span><br>All deployed. All explainable. Try them.</div>
+        <div class="tagline">Built six production AI agents from scratch <span>in a weekend.</span><br>Two flagship demos live below. All explainable. Try them.</div>
       </div>
       <div class="header-links">
         <a class="header-link" href="https://github.com/SamuraiKai1/ai-agents-portfolio" target="_blank">
@@ -200,66 +203,20 @@
 
   <div class="section-label">Advanced demos</div>
   <div class="agent-grid-3">
-    <div class="agent-card" style="border-color: #BA751760; background: #1f1a0a;">
+    <a class="agent-card" href="multi-agent.html" style="border-color: #BA751760; background: #1f1a0a;">
       <div class="agent-icon" style="background: #BA751720;"><i class="ti ti-sitemap" style="color: #EF9F27;"></i></div>
       <div class="agent-name" style="color: #FAC775;">Multi-agent system</div>
       <div class="agent-tech" style="color: #EF9F27;">Dynamic orchestration · Task decomposition · Live log</div>
       <div class="agent-desc" style="color: #FAC775; opacity: 0.7;">Manager agent assembles a specialist team on the fly. No hardcoded pipelines.</div>
-      <a class="open-btn" href="multi-agent.html" style="color: #EF9F27; border-color: #BA751740;"><i class="ti ti-external-link"></i> Open full demo</a>
-    </div>
-    <div class="agent-card advanced">
-      <div class="agent-icon"><i class="ti ti-headset"></i></div>
-      <div class="agent-name">Customer support agent</div>
-      <div class="agent-tech">Tool calling · Supabase · Write operations · Audit log</div>
-      <div class="agent-desc">Reads and writes to a live database. Upload your own CSV and watch it handle real support cases.</div>
-      <a class="open-btn" href="support-agent.html"><i class="ti ti-external-link"></i> Open full demo</a>
-    </div>
-    <div class="agent-card advanced">
+      <div class="open-btn" style="color: #EF9F27; border-color: #BA751740;"><i class="ti ti-external-link"></i> Open full demo</div>
+    </a>
+    <a class="agent-card advanced" href="byod-agent.html">
       <div class="agent-icon"><i class="ti ti-file-upload"></i></div>
       <div class="agent-name">Bring-your-own-data agent</div>
       <div class="agent-tech">Pinecone · Hybrid Search · Re-ranking · RAGAS Evals</div>
       <div class="agent-desc">Upload any PDF, TXT, or CSV. Ask questions grounded in your document. Run evals to measure accuracy.</div>
-      <a class="open-btn" href="byod-agent.html"><i class="ti ti-external-link"></i> Open full demo</a>
-    </div>
-  </div>
-
-  <div class="section-label">Foundations</div>
-  <div class="agent-grid">
-    <div class="agent-card active" onclick="selectAgent('search')" id="card-search">
-      <div class="agent-icon"><i class="ti ti-search"></i></div>
-      <div class="agent-name">Web search</div>
-      <div class="agent-tech">Tool calling · Agent loop · Runaway protection</div>
-      <div class="agent-desc">Searches the web in real time to answer any question</div>
-    </div>
-    <div class="agent-card" onclick="selectAgent('rag')" id="card-rag">
-      <div class="agent-icon"><i class="ti ti-file-search"></i></div>
-      <div class="agent-name">Document Q&A</div>
-      <div class="agent-tech">Chunking · Embeddings · Vector retrieval</div>
-      <div class="agent-desc">Answers grounded strictly in private document context</div>
-    </div>
-    <div class="agent-card" onclick="selectAgent('memory')" id="card-memory">
-      <div class="agent-icon"><i class="ti ti-brain"></i></div>
-      <div class="agent-name">Memory agent</div>
-      <div class="agent-tech">Session memory · RAG · Stateless API management</div>
-      <div class="agent-desc">Remembers context across turns, combined with retrieval</div>
-    </div>
-  </div>
-
-  <div class="chat-area">
-    <div class="chat-label" id="chat-label">Web search agent</div>
-    <div class="messages" id="messages">
-      <div class="msg agent">Ask me anything. I can search the web in real time.</div>
-    </div>
-    <div class="input-row">
-      <input class="chat-input" id="input" placeholder="Ask about current events..." onkeydown="if(event.key==='Enter' && !event.shiftKey) send()">
-      <button class="send-btn" id="send-btn" onclick="send()">
-        Send <i class="ti ti-arrow-right"></i>
-      </button>
-    </div>
-    <div class="spin-notice">
-      <i class="ti ti-info-circle"></i>
-      Free tier. Agents may take 30s to wake up on first request.
-    </div>
+      <div class="open-btn"><i class="ti ti-external-link"></i> Open full demo</div>
+    </a>
   </div>
 
   <div class="stack-row">
@@ -273,108 +230,16 @@
     <span class="stack-pill">LangGraph</span>
     <span class="stack-pill">Hybrid Search</span>
     <span class="stack-pill">Python 3.12</span>
-    <span class="stack-pill">Render</span>
+    <span class="stack-pill">Railway</span>
   </div>
 
   <div class="footer">
-    <div class="footer-left" id="session-label">session: search-demo</div>
+    <div class="footer-left">SamuraiKai · 2026</div>
     <div class="footer-right">2026.</div>
   </div>
 
 </div>
 
-<script>
-  const AGENTS = {
-    search: {
-      url: 'https://web-search-agent-production-d039.up.railway.app/ask',
-      label: 'Web search agent',
-      placeholder: 'Ask about current events...',
-      welcome: 'Ask me anything. I can search the web in real time.',
-      payload: (msg) => ({ question: msg }),
-      extract: (d) => d.answer,
-      session: false
-    },
-    rag: {
-      url: 'https://rag-agent-31ns.onrender.com/ask',
-      label: 'Document Q&A agent',
-      placeholder: 'Ask about vacation, remote work, health insurance...',
-      welcome: 'I know ACME Corp HR policies. Ask me about vacation days, expense reports, remote work, parental leave, or health insurance.',
-      payload: (msg) => ({ question: msg }),
-      extract: (d) => d.answer,
-      session: false
-    },
-    memory: {
-      url: 'https://memory-agent-ngxi.onrender.com/chat',
-      label: 'Memory agent',
-      placeholder: 'Tell me your name, then ask a follow-up...',
-      welcome: 'I am Agent Smith, ACME Corp HR assistant. Tell me your name, ask about company policy, then watch me remember you.',
-      payload: (msg, sid) => ({ session_id: sid, message: msg }),
-      extract: (d) => d.response,
-      session: true
-    }
-  };
 
-  let current = 'search';
-  let sessionId = 'user-' + Math.random().toString(36).slice(2, 8);
-
-  function selectAgent(key) {
-    current = key;
-    ['search', 'rag', 'memory'].forEach(k => {
-      document.getElementById('card-' + k).classList.remove('active');
-    });
-    document.getElementById('card-' + key).classList.add('active');
-    const a = AGENTS[key];
-    document.getElementById('chat-label').textContent = a.label;
-    document.getElementById('input').placeholder = a.placeholder;
-    document.getElementById('messages').innerHTML = '<div class="msg agent">' + a.welcome + '</div>';
-    if (a.session) {
-      sessionId = 'user-' + Math.random().toString(36).slice(2, 8);
-      document.getElementById('session-label').textContent = 'session: ' + sessionId;
-    } else {
-      document.getElementById('session-label').textContent = 'session: ' + key + '-demo';
-    }
-  }
-
-  async function send() {
-    const input = document.getElementById('input');
-    const btn = document.getElementById('send-btn');
-    const msg = input.value.trim();
-    if (!msg || btn.disabled) return;
-    const msgs = document.getElementById('messages');
-    msgs.innerHTML += '<div class="msg user">' + escHtml(msg) + '</div>';
-    msgs.innerHTML += '<div class="msg thinking" id="thinking">thinking...</div>';
-    input.value = '';
-    btn.disabled = true;
-    msgs.scrollTop = msgs.scrollHeight;
-    const a = AGENTS[current];
-    try {
-      const res = await fetch(a.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(a.payload(msg, sessionId))
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      document.getElementById('thinking').remove();
-      msgs.innerHTML += '<div class="msg agent">' + escHtml(a.extract(data)) + '</div>';
-    } catch (e) {
-      document.getElementById('thinking').remove();
-      msgs.innerHTML += '<div class="msg agent" style="opacity:0.6;font-style:italic">Agent is waking up on free tier. Try again in 30 seconds.</div>';
-    }
-    btn.disabled = false;
-    msgs.scrollTop = msgs.scrollHeight;
-    input.focus();
-  }
-
-  function escHtml(str) {
-    return (str || '')
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g,'<em>$1</em>')
-      .replace(/\n/g,'<br>');
-  }
-</script>
 </body>
 </html>
