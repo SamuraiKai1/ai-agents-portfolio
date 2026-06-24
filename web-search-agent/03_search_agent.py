@@ -8,6 +8,9 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from pydantic import BaseModel
 import uvicorn
+from dotenv import load_dotenv
+
+load_dotenv()
 
 anthropic_client = anthropic.Anthropic()
 tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])

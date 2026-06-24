@@ -3,3 +3,4 @@ tavily-python
 fastapi
 uvicorn
 slowapi
+python-dotenv
