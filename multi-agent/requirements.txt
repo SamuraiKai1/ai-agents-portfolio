@@ -3,3 +3,4 @@ tavily-python
 fastapi
 uvicorn
 slowapi
+langfuse>=4.9.1
