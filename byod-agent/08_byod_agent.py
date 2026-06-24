@@ -127,7 +127,7 @@ def verify_answer(question: str, context: str, answer: str) -> bool:
             "content": f"""Does this answer contain ONLY information from the context below?
 Reply with YES or NO only.
 
-Context: {context[:500]}
+Context: {context}
 
 Question: {question}
 
